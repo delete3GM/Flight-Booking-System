@@ -11,7 +11,7 @@
 #include <QPainter>
 #include <QUuid>
 #include <QListWidget>
-
+#include <QRadioButton>
 
 Flight_Ticket_Management_System::Flight_Ticket_Management_System(QWidget *parent)
     : QMainWindow(parent)
@@ -120,8 +120,17 @@ void Flight_Ticket_Management_System::Login()
 void Flight_Ticket_Management_System::onTabChanged(int index)
 {
     QTabWidget *tabWidget = ui->Orders;
-    if (tabWidget->tabText(index) == "全部") {
-        displayAllOrders();
+    if (index < tabWidget->count()) {
+        if (tabWidget->tabText(index) == "全部") {
+            qDebug()<<"all orders";
+            displayOrders(tabWidget, "");
+        }
+        if (tabWidget->tabText(index) == "已出票") {
+            qDebug()<<"available orders";
+            displayOrders(tabWidget, "已支付");
+        }
+    } else {
+        qDebug() << "Invalid tab index";
     }
 }
 
@@ -144,6 +153,11 @@ void Flight_Ticket_Management_System::Back2Menu()
 
 void Flight_Ticket_Management_System::Start2Menu()
 {
+    ui->depBox->setCurrentIndex(0);
+    ui->arrBox->setCurrentIndex(0);
+    QDate today = QDate::currentDate();
+    ui->calendarWidget->setSelectedDate(today);
+    ui->showCalendarBtn->setText("选择出发日期");
     ui->stackedWidget->setCurrentWidget(ui->menuPage);
 }
 
@@ -152,6 +166,7 @@ void Flight_Ticket_Management_System::Start2User()
     ui->stackedWidget->setCurrentWidget(ui->userPage);
     loadUserOrders();  // 加载用户订单
     ui->Orders->setCurrentIndex(0);
+    displayOrders(ui->Orders, "已支付");
 }
 
 void Flight_Ticket_Management_System::toStart()
@@ -353,11 +368,13 @@ void Flight_Ticket_Management_System::updateTableWidget(const QVector<Flight>& f
             item->setTextAlignment(Qt::AlignCenter);
             tableWidget->setItem(row, 7, item);
 
-            if (flight.getRemainSeatNum()) {
+            if (flight.getRemainSeatNum() > 0) {
                 QPushButton *buy_button = new QPushButton("订票");
                 buy_button->setProperty("rowIndex", row); // 设置属性来存储行索引
                 connect(buy_button, &QPushButton::clicked, this, [this, row]() {
                     handleTicketBooking(row);
+                    ui->isMale->setChecked(false);
+                    ui->isFemale->setChecked(false);
                 });
                 tableWidget->setCellWidget(row, 8, buy_button);
             } else {
@@ -401,9 +418,14 @@ void Flight_Ticket_Management_System::handleTicketBooking(int rowIndex)
 
         // 切换到购票页面
         ui->stackedWidget->setCurrentWidget(ui->buyPage);
+
+        ui->familyname->clear();
         ui->familyname->setPlaceholderText("姓");
+        ui->givenname->clear();
         ui->givenname->setPlaceholderText("名");
+        ui->passenger_id->clear();
         ui->passenger_id->setPlaceholderText("身份证号");
+        ui->passenger_phone->clear();
         ui->passenger_phone->setPlaceholderText("手机号码");
 
         // 展示航班信息
@@ -418,14 +440,7 @@ void Flight_Ticket_Management_System::addPassenger()
     QString givenName = ui->givenname->text();
     QString passengerId = ui->passenger_id->text();
     QString passengerPhone = ui->passenger_phone->text();
-
-    // 直接获取性别按钮的选中状态
-    QString sex;
-    if (ui->isMale->isChecked()) {
-        sex = "Male";
-    } else if (ui->isFemale->isChecked()) {
-        sex = "Female";
-    }
+    QString sex = ui->isMale->isChecked() ? "Male" : (ui->isFemale->isChecked() ? "Female" : "");
 
     if (familyName.isEmpty() || givenName.isEmpty() || passengerId.isEmpty() || passengerPhone.isEmpty() || sex.isEmpty()) {
         QMessageBox::warning(this, "错误", "请填写完整信息！");
@@ -438,109 +453,227 @@ void Flight_Ticket_Management_System::addPassenger()
 
     // 创建订单对象
     Flight thisFlight = selectedFlight;
-    Order order(QUuid::createUuid().toString(), passenger, thisFlight, "未支付");
+    Order order(QUuid::createUuid().toString(), passenger, thisFlight, "已支付");
 
+    // 减少余票数
+    for (City* city : network.getCities()) {
+        FlightNode* node = city->flights;
+        while (node) {
+            if (node->flight->getFlightNumber() == thisFlight.getFlightNumber()) {
+                node->flight->setRemainSeatNum(node->flight->getRemainSeatNum() - 1);
+                qDebug() << "Updated remaining seats for flight " << thisFlight.getFlightNumber() << " to " << node->flight->getRemainSeatNum();
+                break;
+            }
+            node = node->next;
+        }
+    }
+    qInfo() << "ORDER:" << order.toString();
 
-    qInfo() << "ORDER:"<<order.toString();
-    orderManager.addOrder(order); // 添加订单到管理器
+    // 写回航班文件
+    network.writeDataToFile("data/flight_data.txt");
 
-    // 保存订单到文件
+    // 保存到订单
     QString filePath = "order/" + currentId + ".txt";
-    orderManager.saveOrdersToFile(filePath);
-    qInfo() << "此订单已保存在" << currentId << ".txt文件中";
+    orderManager.loadOrdersFromFile(filePath);
+    orderManager.addOrder(order); // 添加新订单到管理器
+    if (!orderManager.saveOrdersToFile(filePath)) {
+        QMessageBox::warning(this, "错误", "保存订单失败！");
+        return;
+    } else {
+        qInfo() << "此订单已保存在" << currentId << ".txt文件中";
+    }
 
     QMessageBox::information(this, "确认", "订票成功！");
     toStart();
+    ui->isMale->setCheckable(false);
+    ui->isMale->setChecked(false);
+    ui->isMale->setCheckable(true);
+
+    ui->isFemale->setCheckable(false);
+    ui->isFemale->setChecked(false);
+    ui->isFemale->setCheckable(true);
 }
 
 
-void Flight_Ticket_Management_System::displayAllOrders()
+void Flight_Ticket_Management_System::displayOrders(QTabWidget* tabWidget, const QString& statusFilter)
 {
+    QWidget *allTab = tabWidget->widget(1);
+    QWidget *paidTab = tabWidget->widget(0);
 
-    qDebug()<<"查看全部订单";
-    QWidget *allTab = ui->Orders->widget(1);  // 获取 "全部" 标签页
+    if (!allTab || !paidTab) {
+        qDebug() << "Error: Tab widget not found!";
+        return;
+    }
 
-    // 检查是否存在布局，并删除所有子控件
-    QVBoxLayout *layout = static_cast<QVBoxLayout*>(allTab->layout());
-    if (layout) {
-        QLayoutItem *item;
-        while ((item = layout->takeAt(0)) != nullptr) {
-            if (item->widget()) {
-                delete item->widget();
+    // 清除之前的内容
+    auto clearLayout = [](QVBoxLayout *layout) {
+        if (layout) {
+            QLayoutItem *item;
+            while ((item = layout->takeAt(0)) != nullptr) {
+                if (item->widget()) {
+                    delete item->widget();
+                }
+                delete item;
             }
-            delete item;
         }
+    };
+
+    // 获取现有的布局
+    QVBoxLayout *layoutAll = static_cast<QVBoxLayout*>(allTab->layout());
+    QVBoxLayout *layoutPaid = static_cast<QVBoxLayout*>(paidTab->layout());
+
+    // 如果布局不存在，则创建新的布局
+    if (!layoutAll) {
+        layoutAll = new QVBoxLayout(allTab);
     } else {
-        layout = new QVBoxLayout(allTab);
+        clearLayout(layoutAll);
     }
 
-    QTableWidget *tableWidget = new QTableWidget(allTab);
-    tableWidget->setParent(allTab);
+    if (!layoutPaid) {
+        layoutPaid = new QVBoxLayout(paidTab);
+    } else {
+        clearLayout(layoutPaid);
+    }
 
-    // 表头
-    QStringList headers {"乘客姓名", "航班信息", "退票", "改签"};
-    tableWidget->setColumnCount(headers.size());
-    tableWidget->setHorizontalHeaderLabels(headers);
+    // 创建或重用 QTableWidget
+    QTableWidget *tableWidgetAll = allTab->findChild<QTableWidget *>();
+    QTableWidget *tableWidgetPaid = paidTab->findChild<QTableWidget *>();
 
-    // 设置拉伸模式
-    QHeaderView *horizontalHeader = tableWidget->horizontalHeader();
+    if (!tableWidgetAll) {
+        tableWidgetAll = new QTableWidget(allTab);
+    } else {
+        tableWidgetAll->clearContents();
+        tableWidgetAll->setRowCount(0);
+    }
+
+    if (!tableWidgetPaid) {
+        tableWidgetPaid = new QTableWidget(paidTab);
+    } else {
+        tableWidgetPaid->clearContents();
+        tableWidgetPaid->setRowCount(0);
+    }
+
+    // 配置表头
+    QStringList headersAll {"乘客姓名", "航班信息", "状态"};
+    QStringList headersPaid {"乘客姓名", "航班信息", "退票", "改签"};
+    tableWidgetAll->setColumnCount(headersAll.size());
+    tableWidgetPaid->setColumnCount(headersPaid.size());
+    tableWidgetAll->setHorizontalHeaderLabels(headersAll);
+    tableWidgetPaid->setHorizontalHeaderLabels(headersPaid);
+
+    QHeaderView *horizontalHeader = tableWidgetAll->horizontalHeader();
     horizontalHeader->setSectionResizeMode(QHeaderView::Stretch);
+    tableWidgetPaid->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 
-    // 隐藏行标签
-    tableWidget->verticalHeader()->setVisible(false);
+    tableWidgetAll->verticalHeader()->setVisible(false);
+    tableWidgetPaid->verticalHeader()->setVisible(false);
 
+    for (const Order &order : orderManager.getOrders()) {
+        if (statusFilter.isEmpty() || order.getStatus() == statusFilter) {
+            QTableWidget *currentTable = (tabWidget->currentWidget() == allTab) ? tableWidgetAll : tableWidgetPaid;
+            int rowNum = currentTable->rowCount();
+            currentTable->insertRow(rowNum);
 
-    for (int row = 0; row < orderManager.getOrders().size(); row++) {
-        const Order &order = orderManager.getOrders()[row];
+            QTableWidgetItem *nameItem = new QTableWidgetItem(order.getPassenger().getFamilyName() + " " + order.getPassenger().getGivenName());
+            QTableWidgetItem *flightItem = new QTableWidgetItem(order.getFlight().toString());
+            QTableWidgetItem *statusItem = new QTableWidgetItem(order.getStatus());
 
-        tableWidget->insertRow(row);
+            nameItem->setTextAlignment(Qt::AlignCenter);
+            flightItem->setTextAlignment(Qt::AlignCenter);
+            statusItem->setTextAlignment(Qt::AlignCenter);
 
-        QTableWidgetItem *nameItem = new QTableWidgetItem(order.getPassenger().getFamilyName() + " " + order.getPassenger().getGivenName());
-        nameItem->setTextAlignment(Qt::AlignCenter);
-        tableWidget->setItem(row, 0, nameItem);
+            currentTable->setItem(rowNum, 0, nameItem);
+            currentTable->setItem(rowNum, 1, flightItem);
+            if(currentTable == tableWidgetAll)
+                currentTable->setItem(rowNum, 2, statusItem);
 
-        QTableWidgetItem *flightItem = new QTableWidgetItem(order.getFlight().getAirline() + " " + order.getFlight().getFlightNumber());
-        flightItem->setTextAlignment(Qt::AlignCenter);
-        tableWidget->setItem(row, 1, flightItem);
+            if (currentTable == tableWidgetPaid) {
+                // 添加退票按钮
+                QPushButton *refundButton = new QPushButton("退票");
+                refundButton->setProperty("orderId", order.getOrderId());
+                connect(refundButton, &QPushButton::released, this, [this, refundButton]() {
+                    handleRefund(refundButton->property("orderId").toString());
+                });
+                currentTable->setCellWidget(rowNum, 2, refundButton);
 
-        QPushButton *refundButton = new QPushButton("退票");
-        connect(refundButton, &QPushButton::clicked, this, [this, row]() { handleRefund(row); });
-        tableWidget->setCellWidget(row, 2, refundButton);
-
-        QPushButton *rescheduleButton = new QPushButton("改签");
-        connect(rescheduleButton, &QPushButton::clicked, this, [this, row]() { handleReschedule(row); });
-        tableWidget->setCellWidget(row, 3, rescheduleButton);
+                // 添加改签按钮
+                QPushButton *rescheduleButton = new QPushButton("改签");
+                rescheduleButton->setProperty("orderId", order.getOrderId());
+                connect(rescheduleButton, &QPushButton::released, this, [this, rescheduleButton]() {
+                    handleReschedule(rescheduleButton->property("orderId").toString());
+                });
+                currentTable->setCellWidget(rowNum, 3, rescheduleButton);
+            }
+        }
     }
 
-    layout->addWidget(tableWidget);
-    allTab->setLayout(layout);
+    layoutAll->addWidget(tableWidgetAll);
+    layoutPaid->addWidget(tableWidgetPaid);
+    allTab->setLayout(layoutAll);
+    paidTab->setLayout(layoutPaid);
 
-    // 调整表格的大小以适应标签页
-    tableWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    tableWidget->resize(tableWidget->sizeHint());
+    tableWidgetAll->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    tableWidgetPaid->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    tableWidgetAll->resize(tableWidgetAll->sizeHint());
+    tableWidgetPaid->resize(tableWidgetPaid->sizeHint());
 }
 
-void Flight_Ticket_Management_System::handleRefund(int rowIndex)
+void Flight_Ticket_Management_System::handleRefund(const QString& orderId)
 {
-    // 处理退票逻辑
-    const Order &order = orderManager.getOrders()[rowIndex];
-    qDebug() << "Refunding order: " << order.getOrderId();
-    // 这里可以添加退票的逻辑，例如更新订单状态，退款等
+    // 检查订单是否存在
+    bool orderFound = false;
+    for (int i = 0; i < orderManager.getOrders().size(); i++) {
+        Order& order = orderManager.getOrders()[i];
+        if (order.getOrderId() == orderId) {
+            orderFound = true;
+            // 检查订单状态是否允许退票
+            if (order.getStatus() == "已支付") {
+                // 更新订单状态为“已退票”
+                order.setStatus("已退票");
 
+                // 找到对应的航班并增加余票数
+                QString flightNumber = order.getFlight().getFlightNumber();
+                for (City* city : network.getCities()) {
+                    FlightNode* node = city->flights;
+                    while (node) {
+                        if (node->flight->getFlightNumber() == flightNumber) {
+                            node->flight->setRemainSeatNum(node->flight->getRemainSeatNum() + 1);
+                            qDebug() << "Updated remaining seats for flight" << flightNumber << "to" << node->flight->getRemainSeatNum();
+                            break;
+                        }
+                        node = node->next;
+                    }
+                }
 
+                // 保存更新后的订单到文件
+                QString filePath = "order/" + currentId + ".txt";
+                if (!orderManager.saveOrdersToFile(filePath)) {
+                    QMessageBox::warning(this, "错误", "保存订单失败！");
+                    return;
+                } else qDebug()<<"save "<<filePath;
 
+                // 将更新后的航班信息写回文件
+                network.writeDataToFile("data/flight_data.txt");
 
+                // 显示退票成功的消息
+                QMessageBox::information(this, "操作成功", "退票成功！");
+                return;
+            } else {
+                QMessageBox::warning(this, "错误", "此订单不能退票！");
+                return;
+            }
+        }
+    }
 
-    QMessageBox::information(this, "退票", "已成功退票。");
+    if (!orderFound) {
+        QMessageBox::warning(this, "错误", "未找到订单！");
+    }
+
 }
 
-void Flight_Ticket_Management_System::handleReschedule(int rowIndex)
+void Flight_Ticket_Management_System::handleReschedule(const QString& orderId)
 {
-    // 处理改签逻辑
-    const Order &order = orderManager.getOrders()[rowIndex];
-    qDebug() << "Rescheduling order: " << order.getOrderId();
-    // 这里可以添加改签的逻辑
-    QMessageBox::information(this, "改签", "已成功改签。");
+
 }
 
 void Flight_Ticket_Management_System::showMap()

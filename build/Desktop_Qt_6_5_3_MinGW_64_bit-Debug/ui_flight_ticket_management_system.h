@@ -194,6 +194,7 @@ public:
         depBox->setFont(font1);
         depBox->setLayoutDirection(Qt::LayoutDirection::LeftToRight);
         depBox->setAutoFillBackground(false);
+        depBox->setStyleSheet(QString::fromUtf8(""));
         arrBox = new QComboBox(menuPage);
         arrBox->setObjectName("arrBox");
         arrBox->setGeometry(QRect(580, 120, 131, 51));
@@ -269,6 +270,10 @@ public:
         isMale->setObjectName("isMale");
         isMale->setGeometry(QRect(430, 210, 51, 21));
         isMale->setFont(font4);
+        isMale->setStyleSheet(QString::fromUtf8(""));
+        isMale->setCheckable(true);
+        isMale->setChecked(false);
+        isMale->setAutoRepeat(false);
         isFemale = new QRadioButton(buyPage);
         isFemale->setObjectName("isFemale");
         isFemale->setGeometry(QRect(510, 210, 72, 21));
@@ -303,7 +308,7 @@ public:
         retranslateUi(Flight_Ticket_Management_System);
 
         stackedWidget->setCurrentIndex(0);
-        Orders->setCurrentIndex(0);
+        Orders->setCurrentIndex(1);
 
 
         QMetaObject::connectSlotsByName(Flight_Ticket_Management_System);

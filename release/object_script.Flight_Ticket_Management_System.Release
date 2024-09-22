@@ -1,0 +1,11 @@
+release/Common.o
+release/Flight.o
+release/FlightNetwork.o
+release/Order.o
+release/OrderManager.o
+release/User.o
+release/main.o
+release/flight_ticket_management_system.o
+release/moc_City.o
+release/moc_FlightNetwork.o
+release/moc_flight_ticket_management_system.o

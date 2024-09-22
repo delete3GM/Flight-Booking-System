@@ -9,9 +9,9 @@ private:
     QList<Order> orders;
 
 public:
-    QList<Order> getOrders();
+    QList<Order>& getOrders();
     void addOrder(const Order& order);
     void modifyOrder(int index, const Order& newOrder);
-    void saveOrdersToFile(const QString& filePath);
+    bool saveOrdersToFile(const QString& filePath);
     void loadOrdersFromFile(const QString& filePath);
 };

@@ -6,7 +6,7 @@
 ** WARNING! All changes made in this file will be lost!
 *****************************************************************************/
 
-#include "../../../flight_ticket_management_system.h"
+#include "../../../include/flight_ticket_management_system.h"
 #include <QtCore/qmetatype.h>
 #include <QtCore/QList>
 
@@ -67,15 +67,19 @@ static constexpr auto qt_meta_stringdata_CLASSFlight_Ticket_Management_SystemEND
     "handleTicketBooking",
     "rowIndex",
     "addPassenger",
-    "displayAllOrders",
+    "displayOrders",
+    "QTabWidget*",
+    "tabWidget",
+    "statusFilter",
     "onTabChanged",
     "handleRefund",
+    "orderId",
     "handleReschedule",
     "showMap"
 );
 #else  // !QT_MOC_HAS_STRING_DATA
 struct qt_meta_stringdata_CLASSFlight_Ticket_Management_SystemENDCLASS_t {
-    uint offsetsAndSizes[66];
+    uint offsetsAndSizes[74];
     char stringdata0[32];
     char stringdata1[6];
     char stringdata2[1];
@@ -104,11 +108,15 @@ struct qt_meta_stringdata_CLASSFlight_Ticket_Management_SystemENDCLASS_t {
     char stringdata25[20];
     char stringdata26[9];
     char stringdata27[13];
-    char stringdata28[17];
-    char stringdata29[13];
-    char stringdata30[13];
-    char stringdata31[17];
-    char stringdata32[8];
+    char stringdata28[14];
+    char stringdata29[12];
+    char stringdata30[10];
+    char stringdata31[13];
+    char stringdata32[13];
+    char stringdata33[13];
+    char stringdata34[8];
+    char stringdata35[17];
+    char stringdata36[8];
 };
 #define QT_MOC_LITERAL(ofs, len) \
     uint(sizeof(qt_meta_stringdata_CLASSFlight_Ticket_Management_SystemENDCLASS_t::offsetsAndSizes) + ofs), len 
@@ -142,11 +150,15 @@ Q_CONSTINIT static const qt_meta_stringdata_CLASSFlight_Ticket_Management_System
         QT_MOC_LITERAL(279, 19),  // "handleTicketBooking"
         QT_MOC_LITERAL(299, 8),  // "rowIndex"
         QT_MOC_LITERAL(308, 12),  // "addPassenger"
-        QT_MOC_LITERAL(321, 16),  // "displayAllOrders"
-        QT_MOC_LITERAL(338, 12),  // "onTabChanged"
-        QT_MOC_LITERAL(351, 12),  // "handleRefund"
-        QT_MOC_LITERAL(364, 16),  // "handleReschedule"
-        QT_MOC_LITERAL(381, 7)   // "showMap"
+        QT_MOC_LITERAL(321, 13),  // "displayOrders"
+        QT_MOC_LITERAL(335, 11),  // "QTabWidget*"
+        QT_MOC_LITERAL(347, 9),  // "tabWidget"
+        QT_MOC_LITERAL(357, 12),  // "statusFilter"
+        QT_MOC_LITERAL(370, 12),  // "onTabChanged"
+        QT_MOC_LITERAL(383, 12),  // "handleRefund"
+        QT_MOC_LITERAL(396, 7),  // "orderId"
+        QT_MOC_LITERAL(404, 16),  // "handleReschedule"
+        QT_MOC_LITERAL(421, 7)   // "showMap"
     },
     "Flight_Ticket_Management_System",
     "Login",
@@ -176,9 +188,13 @@ Q_CONSTINIT static const qt_meta_stringdata_CLASSFlight_Ticket_Management_System
     "handleTicketBooking",
     "rowIndex",
     "addPassenger",
-    "displayAllOrders",
+    "displayOrders",
+    "QTabWidget*",
+    "tabWidget",
+    "statusFilter",
     "onTabChanged",
     "handleRefund",
+    "orderId",
     "handleReschedule",
     "showMap"
 };
@@ -192,7 +208,7 @@ Q_CONSTINIT static const uint qt_meta_data_CLASSFlight_Ticket_Management_SystemE
       11,       // revision
        0,       // classname
        0,    0, // classinfo
-      25,   14, // methods
+      26,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -200,31 +216,32 @@ Q_CONSTINIT static const uint qt_meta_data_CLASSFlight_Ticket_Management_SystemE
        0,       // signalCount
 
  // slots: name, argc, parameters, tag, flags, initial metatype offsets
-       1,    0,  164,    2, 0x08,    1 /* Private */,
-       3,    0,  165,    2, 0x08,    2 /* Private */,
-       4,    0,  166,    2, 0x08,    3 /* Private */,
-       5,    0,  167,    2, 0x08,    4 /* Private */,
-       6,    0,  168,    2, 0x08,    5 /* Private */,
-       7,    0,  169,    2, 0x08,    6 /* Private */,
-       8,    0,  170,    2, 0x08,    7 /* Private */,
-       9,    0,  171,    2, 0x08,    8 /* Private */,
-      10,    0,  172,    2, 0x08,    9 /* Private */,
-      11,    0,  173,    2, 0x08,   10 /* Private */,
-      12,    1,  174,    2, 0x08,   11 /* Private */,
-      14,    1,  177,    2, 0x08,   13 /* Private */,
-      15,    0,  180,    2, 0x08,   15 /* Private */,
-      16,    0,  181,    2, 0x08,   16 /* Private */,
-      17,    1,  182,    2, 0x08,   17 /* Private */,
-      19,    1,  185,    2, 0x08,   19 /* Private */,
-      22,    0,  188,    2, 0x08,   21 /* Private */,
-      23,    1,  189,    2, 0x08,   22 /* Private */,
-      25,    1,  192,    2, 0x08,   24 /* Private */,
-      27,    0,  195,    2, 0x08,   26 /* Private */,
-      28,    0,  196,    2, 0x08,   27 /* Private */,
-      29,    1,  197,    2, 0x08,   28 /* Private */,
-      30,    1,  200,    2, 0x08,   30 /* Private */,
-      31,    1,  203,    2, 0x08,   32 /* Private */,
-      32,    0,  206,    2, 0x08,   34 /* Private */,
+       1,    0,  170,    2, 0x08,    1 /* Private */,
+       3,    0,  171,    2, 0x08,    2 /* Private */,
+       4,    0,  172,    2, 0x08,    3 /* Private */,
+       5,    0,  173,    2, 0x08,    4 /* Private */,
+       6,    0,  174,    2, 0x08,    5 /* Private */,
+       7,    0,  175,    2, 0x08,    6 /* Private */,
+       8,    0,  176,    2, 0x08,    7 /* Private */,
+       9,    0,  177,    2, 0x08,    8 /* Private */,
+      10,    0,  178,    2, 0x08,    9 /* Private */,
+      11,    0,  179,    2, 0x08,   10 /* Private */,
+      12,    1,  180,    2, 0x08,   11 /* Private */,
+      14,    1,  183,    2, 0x08,   13 /* Private */,
+      15,    0,  186,    2, 0x08,   15 /* Private */,
+      16,    0,  187,    2, 0x08,   16 /* Private */,
+      17,    1,  188,    2, 0x08,   17 /* Private */,
+      19,    1,  191,    2, 0x08,   19 /* Private */,
+      22,    0,  194,    2, 0x08,   21 /* Private */,
+      23,    1,  195,    2, 0x08,   22 /* Private */,
+      25,    1,  198,    2, 0x08,   24 /* Private */,
+      27,    0,  201,    2, 0x08,   26 /* Private */,
+      28,    2,  202,    2, 0x08,   27 /* Private */,
+      28,    1,  207,    2, 0x28,   30 /* Private | MethodCloned */,
+      32,    1,  210,    2, 0x08,   32 /* Private */,
+      33,    1,  213,    2, 0x08,   34 /* Private */,
+      35,    1,  216,    2, 0x08,   36 /* Private */,
+      36,    0,  219,    2, 0x08,   38 /* Private */,
 
  // slots: parameters
     QMetaType::Void,
@@ -247,10 +264,11 @@ Q_CONSTINIT static const uint qt_meta_data_CLASSFlight_Ticket_Management_SystemE
     QMetaType::Void, QMetaType::QDate,   24,
     QMetaType::Void, QMetaType::Int,   26,
     QMetaType::Void,
-    QMetaType::Void,
+    QMetaType::Void, 0x80000000 | 29, QMetaType::QString,   30,   31,
+    QMetaType::Void, 0x80000000 | 29,   30,
     QMetaType::Void, QMetaType::Int,   13,
-    QMetaType::Void, QMetaType::Int,   26,
-    QMetaType::Void, QMetaType::Int,   26,
+    QMetaType::Void, QMetaType::QString,   34,
+    QMetaType::Void, QMetaType::QString,   34,
     QMetaType::Void,
 
        0        // eod
@@ -311,17 +329,22 @@ Q_CONSTINIT const QMetaObject Flight_Ticket_Management_System::staticMetaObject 
         QtPrivate::TypeAndForceComplete<int, std::false_type>,
         // method 'addPassenger'
         QtPrivate::TypeAndForceComplete<void, std::false_type>,
-        // method 'displayAllOrders'
+        // method 'displayOrders'
         QtPrivate::TypeAndForceComplete<void, std::false_type>,
+        QtPrivate::TypeAndForceComplete<QTabWidget *, std::false_type>,
+        QtPrivate::TypeAndForceComplete<const QString &, std::false_type>,
+        // method 'displayOrders'
+        QtPrivate::TypeAndForceComplete<void, std::false_type>,
+        QtPrivate::TypeAndForceComplete<QTabWidget *, std::false_type>,
         // method 'onTabChanged'
         QtPrivate::TypeAndForceComplete<void, std::false_type>,
         QtPrivate::TypeAndForceComplete<int, std::false_type>,
         // method 'handleRefund'
         QtPrivate::TypeAndForceComplete<void, std::false_type>,
-        QtPrivate::TypeAndForceComplete<int, std::false_type>,
+        QtPrivate::TypeAndForceComplete<const QString &, std::false_type>,
         // method 'handleReschedule'
         QtPrivate::TypeAndForceComplete<void, std::false_type>,
-        QtPrivate::TypeAndForceComplete<int, std::false_type>,
+        QtPrivate::TypeAndForceComplete<const QString &, std::false_type>,
         // method 'showMap'
         QtPrivate::TypeAndForceComplete<void, std::false_type>
     >,
@@ -356,12 +379,31 @@ void Flight_Ticket_Management_System::qt_static_metacall(QObject *_o, QMetaObjec
         case 17: _t->updateButtonWithDate((*reinterpret_cast< std::add_pointer_t<QDate>>(_a[1]))); break;
         case 18: _t->handleTicketBooking((*reinterpret_cast< std::add_pointer_t<int>>(_a[1]))); break;
         case 19: _t->addPassenger(); break;
-        case 20: _t->displayAllOrders(); break;
-        case 21: _t->onTabChanged((*reinterpret_cast< std::add_pointer_t<int>>(_a[1]))); break;
-        case 22: _t->handleRefund((*reinterpret_cast< std::add_pointer_t<int>>(_a[1]))); break;
-        case 23: _t->handleReschedule((*reinterpret_cast< std::add_pointer_t<int>>(_a[1]))); break;
-        case 24: _t->showMap(); break;
+        case 20: _t->displayOrders((*reinterpret_cast< std::add_pointer_t<QTabWidget*>>(_a[1])),(*reinterpret_cast< std::add_pointer_t<QString>>(_a[2]))); break;
+        case 21: _t->displayOrders((*reinterpret_cast< std::add_pointer_t<QTabWidget*>>(_a[1]))); break;
+        case 22: _t->onTabChanged((*reinterpret_cast< std::add_pointer_t<int>>(_a[1]))); break;
+        case 23: _t->handleRefund((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1]))); break;
+        case 24: _t->handleReschedule((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1]))); break;
+        case 25: _t->showMap(); break;
         default: ;
+        }
+    } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
+        switch (_id) {
+        default: *reinterpret_cast<QMetaType *>(_a[0]) = QMetaType(); break;
+        case 20:
+            switch (*reinterpret_cast<int*>(_a[1])) {
+            default: *reinterpret_cast<QMetaType *>(_a[0]) = QMetaType(); break;
+            case 0:
+                *reinterpret_cast<QMetaType *>(_a[0]) = QMetaType::fromType< QTabWidget* >(); break;
+            }
+            break;
+        case 21:
+            switch (*reinterpret_cast<int*>(_a[1])) {
+            default: *reinterpret_cast<QMetaType *>(_a[0]) = QMetaType(); break;
+            case 0:
+                *reinterpret_cast<QMetaType *>(_a[0]) = QMetaType::fromType< QTabWidget* >(); break;
+            }
+            break;
         }
     }
 }
@@ -385,13 +427,13 @@ int Flight_Ticket_Management_System::qt_metacall(QMetaObject::Call _c, int _id, 
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 25)
+        if (_id < 26)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 25;
+        _id -= 26;
     } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 25)
-            *reinterpret_cast<QMetaType *>(_a[0]) = QMetaType();
-        _id -= 25;
+        if (_id < 26)
+            qt_static_metacall(this, _c, _id, _a);
+        _id -= 26;
     }
     return _id;
 }

@@ -21,8 +21,10 @@ public:
                    QString arrivalTime, double price, int remainSeat);
     QVector<QString> getAllCityNames() const;
     void readData(QTextStream* stream);
+    void writeDataToFile(const QString& filename);
     QVector<Flight> searchFlights(QString departureCity, QString arrivalCity, QDate selectedDate);
     QVector<Flight> sortFlights(QVector<Flight> flights, SORT_TYPE sortType);
+    QVector<City*> getCities()const;
 
 private:
     QVector<City*> cities;  // 存储城市对象的向量

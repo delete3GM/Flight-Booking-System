@@ -21,7 +21,7 @@ void FlightNetwork::addCity(QString cityName)
     }
     City* newCity = new City(cityName);
     cities.append(newCity);
-    qDebug() << "City added:" << cityName;
+    //qDebug() << "City added:" << cityName;
 }
 
 void FlightNetwork::addFlight(QString airline, QString flightNumber, QString departureCity, QString arrivalCity, QString departureTime,
@@ -58,6 +58,12 @@ void FlightNetwork::addFlight(QString airline, QString flightNumber, QString dep
     }
 }
 
+QVector<City*> FlightNetwork::getCities() const
+{
+    return cities;
+}
+
+
 QVector<QString> FlightNetwork::getAllCityNames() const
 {
     QVector<QString> cityNames;
@@ -84,7 +90,7 @@ void FlightNetwork::readData(QTextStream* stream)
             part = part.trimmed();
         }
 
-        qInfo()<<lineData;
+        //qInfo()<<lineData;
 
         // 非空字段的数量
         int nonEmptyCount = std::count_if(lineData.begin(), lineData.end(), [](const QString &str) {
@@ -100,6 +106,33 @@ void FlightNetwork::readData(QTextStream* stream)
             addFlight(lineData[0], lineData[1], lineData[2], lineData[3], lineData[4], lineData[5], lineData[6].toDouble(), lineData[7].toInt());
         }
     }
+}
+
+void FlightNetwork::writeDataToFile(const QString& filename)
+{
+    QFile file(filename);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        qWarning() << "Cannot open file for writing: " << filename;
+        return;
+    }
+    QTextStream out(&file);
+
+    for (City* city : cities) {
+        FlightNode* node = city->flights;
+        while (node) {
+            out << node->flight->getAirline() << ", "
+                << node->flight->getFlightNumber() << ", "
+                << node->flight->getDepartureCity() << ", "
+                << node->flight->getDepartureTime() << ", "
+                << node->flight->getArrivalCity() << ", "
+                << node->flight->getArrivalTime() << ", "
+                << node->flight->getPrice() << ", "
+                << node->flight->getRemainSeatNum() << "\n";
+            node = node->next;
+        }
+    }
+
+    file.close();
 }
 
 QVector<Flight> FlightNetwork::searchFlights(QString departureCity, QString arrivalCity, QDate selectedDate)

@@ -68,10 +68,10 @@ private slots:
 
     void handleTicketBooking(int rowIndex);
     void addPassenger();
-    void displayAllOrders();
+    void displayOrders(QTabWidget* tabWidget, const QString& statusFilter = "");
     void onTabChanged(int index);
-    void handleRefund(int rowIndex);
-    void handleReschedule(int rowIndex);
+    void handleRefund(const QString& orderId);
+    void handleReschedule(const QString& orderId);
     void showMap();
 
 

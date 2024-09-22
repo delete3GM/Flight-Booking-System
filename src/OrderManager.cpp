@@ -4,7 +4,7 @@
 #include <QTextStream>
 #include <QDebug>
 
-QList<Order> OrderManager::getOrders()
+QList<Order>& OrderManager::getOrders()
 {
     return this->orders;
 }
@@ -19,18 +19,18 @@ void OrderManager::modifyOrder(int index, const Order& newOrder) {
     }
 }
 
-void OrderManager::saveOrdersToFile(const QString& filePath) {
+bool OrderManager::saveOrdersToFile(const QString& filePath) {
     QFile file(filePath);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
         qWarning() << "Cannot open file for writing: " << filePath;
-        return;
+        return false;
     }
     QTextStream out(&file);
     for (const Order& order : orders) {
-        //qDebug()<<order.toString();
         out << order.toString() << "\n";
     }
     file.close();
+    return true;
 }
 
 void OrderManager::loadOrdersFromFile(const QString& filePath) {
