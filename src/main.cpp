@@ -1,5 +1,4 @@
 #include "flight_ticket_management_system.h"
-
 #include <QApplication>
 
 int main(int argc, char *argv[])

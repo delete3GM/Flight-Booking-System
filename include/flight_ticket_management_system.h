@@ -6,11 +6,9 @@
 #include <QFile>
 #include <QTextStream>
 #include "FlightNetwork.h"
-#include "Order.h"
 #include "OrderManager.h"
-#include "User.h"
-#include <QButtonGroup.h>
-#include <QAbstractButton.h>
+#include <QButtonGroup>
+#include <QAbstractButton>
 #include <QCalendarWidget>
 #include <QTabWidget>
 
@@ -24,6 +22,14 @@ QT_END_NAMESPACE
 class Flight_Ticket_Management_System : public QMainWindow
 {
     Q_OBJECT
+
+
+     // 用于指示当前订单时新添加的订单还是改签订单
+    enum ORDER_TYPE {
+        NONE, // 默认值
+        NEW_ORDER, // 新订单
+        RESCHEDULE_ORDER // 改签订单
+    };
 
 public:
     explicit Flight_Ticket_Management_System(QWidget *parent = nullptr);
@@ -39,6 +45,8 @@ public:
     FlightNetwork network; //当前航线图
     Flight selectedFlight; //当前选择航班
     OrderManager orderManager; //管理所有订单
+    ORDER_TYPE orderType; //当前订单类型
+    Order rescheduleOrder; //要改签的订单
 
 
 private:
@@ -62,6 +70,7 @@ private slots:
 
     void searchFlights();
     void updateSearch(int buttonId);
+    void searchFlightsWithTransfers();
     void updateTableWidget(const QVector<Flight>& flights);
     void showCalendar();
     void updateButtonWithDate(const QDate &date);
@@ -79,6 +88,9 @@ private slots:
 
 protected:
     void mousePressEvent(QMouseEvent *event) override; // 重写鼠标点击事件
+
+private:
+   
 
 };
 #endif // FLIGHT_TICKET_MANAGEMENT_SYSTEM_H

@@ -1,4 +1,4 @@
-# pragma once
+#pragma once
 
 #include <QString>
 #include "User.h"
@@ -30,5 +30,7 @@ public:
     void setStatus(const QString& st);
 
     QString toString() const;
+
+    bool operator == (const Order& other) const;
 
 };

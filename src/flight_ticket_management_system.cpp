@@ -1,4 +1,5 @@
 #include "flight_ticket_management_system.h"
+#include "Flight.h"
 #include "ui_flight_ticket_management_system.h"
 #include "FlightNetwork.h"
 #include "User.h"
@@ -12,6 +13,7 @@
 #include <QUuid>
 #include <QListWidget>
 #include <QRadioButton>
+#include <qdatetime.h>
 
 Flight_Ticket_Management_System::Flight_Ticket_Management_System(QWidget *parent)
     : QMainWindow(parent)
@@ -19,10 +21,16 @@ Flight_Ticket_Management_System::Flight_Ticket_Management_System(QWidget *parent
 {
     ui->setupUi(this);
 
+
+    // 初始界面显示登录界面
+    ui->stackedWidget->setCurrentWidget(ui->loginPage);
+
     //登陆界面
     initLogin();
     connect(ui->loginBtn, SIGNAL(released()), this, SLOT(Login()));
+    //connect(ui->regisBtn, SIGNAL(), this, );
 
+    //切换菜单
     connect(ui->Orders, SIGNAL(currentChanged(int)), this, SLOT(onTabChanged(int)));
 
     //配置日历
@@ -32,14 +40,7 @@ Flight_Ticket_Management_System::Flight_Ticket_Management_System(QWidget *parent
     connect(ui->calendarWidget, SIGNAL(clicked(QDate)), this, SLOT(updateButtonWithDate(QDate)));
 
     //从文件读取数据到图中
-    QTextStream* stream = LoadTextFile(FLIGHT_FILE);
-    if (stream) {
-        network.readData(stream);
-        delete stream; // 确保释放资源
-    }
-    else {
-        qInfo() << "Failed to load data file!";
-    }
+    network.readData(FLIGHT_FILE);
 
     //初始化comboBox
     initializeDepBox();
@@ -52,7 +53,8 @@ Flight_Ticket_Management_System::Flight_Ticket_Management_System(QWidget *parent
 
     // 搜索
     connect(ui->searchBtn, SIGNAL(released()),this,SLOT(Menu2Info()));
-    connect(ui->searchBtn, SIGNAL(released()), this, SLOT(searchFlights()));
+    connect(ui->searchBtn, SIGNAL(released()), this, SLOT(searchFlights())); // 直飞的查询
+    //connect(ui->searchBtn, SIGNAL(released()), this, SLOT(searchFlightsWithTransfers())); // 加入转机操作的查询
 
     //按条件排序
     QButtonGroup *buttonGroup = new QButtonGroup(this);
@@ -67,8 +69,6 @@ Flight_Ticket_Management_System::Flight_Ticket_Management_System(QWidget *parent
     //填写乘客信息
     connect(ui->submitBtn, SIGNAL(released()), this, SLOT(addPassenger()));
     connect(ui->cancelBtn, SIGNAL(released()), this, SLOT(toInfo()));
-
-
 
     //页面跳转
     connect(ui->menuBtn, SIGNAL(released()), this, SLOT(Start2Menu()));
@@ -307,6 +307,22 @@ void Flight_Ticket_Management_System::updateSearch(int buttonId)
     updateTableWidget(flights);
 }
 
+void Flight_Ticket_Management_System::searchFlightsWithTransfers()
+{
+    if (ui->showCalendarBtn->text().contains("选择出发日期")) {
+        return;
+    } else {
+        QString depCity = getDep(ui->depBox->currentIndex());
+        QString arrCity = getArr(ui->arrBox->currentIndex());
+        QDate selectedDate = ui->calendarWidget->selectedDate();
+
+        int totalDuration;
+        QVector<Flight> flights = network.findShortestPath(depCity, arrCity, selectedDate, totalDuration);
+        qDebug() << "Search results count:" << flights.size();
+        updateTableWidget(flights);
+    }
+}
+
 void Flight_Ticket_Management_System::updateTableWidget(const QVector<Flight>& flights)
 {
     QTableWidget *tableWidget = ui->flightTableWidget;
@@ -375,6 +391,13 @@ void Flight_Ticket_Management_System::updateTableWidget(const QVector<Flight>& f
                     handleTicketBooking(row);
                     ui->isMale->setChecked(false);
                     ui->isFemale->setChecked(false);
+                    // 如果是改签航班，则把乘客信息直接填入
+                    if (orderType == RESCHEDULE_ORDER) {
+                        ui->familyname->setText(rescheduleOrder.getPassenger().getFamilyName());
+                        ui->givenname->setText(rescheduleOrder.getPassenger().getGivenName());
+                        ui->passenger_id->setText(rescheduleOrder.getPassenger().getId());
+                        ui->passenger_phone->setText(rescheduleOrder.getPassenger().getPhone());
+                    }
                 });
                 tableWidget->setCellWidget(row, 8, buy_button);
             } else {
@@ -447,6 +470,14 @@ void Flight_Ticket_Management_System::addPassenger()
         return;
     }
 
+    // 如果是改签订单,我们需要判断是不是同一趟航班
+    if (orderType == RESCHEDULE_ORDER) {
+      if (selectedFlight == rescheduleOrder.getFlight()) {
+        QMessageBox::warning(this, "错误", "改签订单不能改签同一趟航班！");
+        return;
+      }
+    }
+
     // 创建乘客对象
     User passenger(familyName, givenName, sex, passengerId, passengerPhone);
     qDebug() << "乘客信息已提交:" << passenger.toString();
@@ -482,8 +513,38 @@ void Flight_Ticket_Management_System::addPassenger()
     } else {
         qInfo() << "此订单已保存在" << currentId << ".txt文件中";
     }
+    // 这里我们判断是否是改签订单
+    if(orderType==RESCHEDULE_ORDER){
+        // 修改原订单状态为已改签
+        rescheduleOrder.setStatus("已改签");
+        orderManager.modifyOrder(orderManager.getOrders().indexOf(rescheduleOrder), rescheduleOrder);
+        if (!orderManager.saveOrdersToFile(filePath)) {
+            QMessageBox::warning(this, "错误", "保存订单失败！");
+            return;
+        } else {
+            qInfo() << "此订单已保存在" << currentId << ".txt文件中";
+        }
 
-    QMessageBox::information(this, "确认", "订票成功！");
+        // 增加余票信息
+        for (City* city : network.getCities()) {
+            FlightNode* node = city->flights;
+            while (node) {
+                if (node->flight->getFlightNumber() == rescheduleOrder.getFlight().getFlightNumber()) {
+                    node->flight->setRemainSeatNum(node->flight->getRemainSeatNum() + 1);
+                    qDebug() << "Updated remaining seats for flight" << rescheduleOrder.getFlight().getFlightNumber() << "to" << node->flight->getRemainSeatNum();
+                    break;
+                }
+                node = node->next;
+            }
+        }
+        QMessageBox::information(this, "确认", "改签成功！");
+        orderType = NONE;
+    }
+    else{
+        QMessageBox::information(this, "确认", "订票成功！");
+    }
+
+   
     toStart();
     ui->isMale->setCheckable(false);
     ui->isMale->setChecked(false);
@@ -673,6 +734,39 @@ void Flight_Ticket_Management_System::handleRefund(const QString& orderId)
 
 void Flight_Ticket_Management_System::handleReschedule(const QString& orderId)
 {
+    // 检查订单是否存在
+    bool orderFound = false;
+    for (int i = 0; i < orderManager.getOrders().size(); i++) {
+        Order& order = orderManager.getOrders()[i];
+        if (order.getOrderId() == orderId) {
+            orderFound = true;
+            // 检查订单状态是否允许改签
+            if (order.getStatus() == "已支付") {
+               // 找到对应的航班
+               Flight flight  = order.getFlight();
+               // 设置航班信息到订票页面
+               auto departureCity = flight.getDepartureCity();
+               auto arrivalCity = flight.getArrivalCity();
+
+               ui->depBox->setCurrentText(departureCity);
+               ui->arrBox->setCurrentText(arrivalCity);
+               QDate date = QDate::fromString(flight.getDepartureTime().mid(0, 10), "yyyy-MM-dd");
+               ui->calendarWidget->setSelectedDate(date);
+               ui->showCalendarBtn->setText(date.toString("yyyy-MM-dd"));
+               ui->stackedWidget->setCurrentWidget(ui->menuPage);
+               rescheduleOrder = order;
+               orderType = RESCHEDULE_ORDER;
+            } else {
+                QMessageBox::warning(this, "错误", "此订单不能改签！");
+                return;
+            }
+            break;
+        }
+    }
+
+    if (!orderFound) {
+        QMessageBox::warning(this, "错误", "未找到订单！");
+    }
 
 }
 

@@ -1,6 +1,8 @@
 #include "FlightNetwork.h"
 #include <QDebug>
 #include <QDateTime>
+#include <limits>
+#include <queue>
 
 
 
@@ -73,9 +75,9 @@ QVector<QString> FlightNetwork::getAllCityNames() const
     return cityNames;
 }
 
-void FlightNetwork::readData(QTextStream* stream)
+void FlightNetwork::readData(const QString& file)
 {
-
+    QTextStream* stream = LoadTextFile(file);
     if (!stream) {
         qInfo() << "Stream is null!";
         return;
@@ -89,7 +91,6 @@ void FlightNetwork::readData(QTextStream* stream)
         for (QString& part : lineData) {
             part = part.trimmed();
         }
-
         //qInfo()<<lineData;
 
         // 非空字段的数量
@@ -131,7 +132,6 @@ void FlightNetwork::writeDataToFile(const QString& filename)
             node = node->next;
         }
     }
-
     file.close();
 }
 
@@ -174,6 +174,7 @@ QVector<Flight> FlightNetwork::sortFlights(QVector<Flight> flights, SORT_TYPE so
         std::sort(flights.begin(), flights.end(), [](const Flight &a, const Flight &b) {
             return a.getFlightTime() < b.getFlightTime();
         });
+        break;
     case SORT_BY_TIME:
         std::sort(flights.begin(), flights.end(), [](const Flight &a, const Flight &b) {
             return a.getDepartureTime() < b.getDepartureTime();
@@ -188,4 +189,92 @@ QVector<Flight> FlightNetwork::sortFlights(QVector<Flight> flights, SORT_TYPE so
         break;
     }
     return flights;
+}
+
+// Dijkstra 需要该！
+QVector<Flight> FlightNetwork::findShortestPath(const QString& departureCity, const QString& arrivalCity, QDate selectedDate, int& totalDuration)
+{
+    QVector<City*> citiesCopy = getCities();
+    QVector<Flight> result;
+    totalDuration = std::numeric_limits<int>::max();
+
+    // 创建一个布尔数组来记录访问状态
+    std::vector<bool> visited(citiesCopy.size(), false);
+    // 创建一个距离表来记录源点到每个顶点的最短距离
+    std::vector<int> distances(citiesCopy.size(), std::numeric_limits<int>::max());
+    // 创建一个前驱表来重建最短路径
+    std::vector<City*> predecessors(citiesCopy.size(), nullptr);
+
+    // 创建一个映射来存储城市和它们索引的映射
+    std::map<QString, int> cityIndexMap;
+    for (int i = 0; i < citiesCopy.size(); ++i) {
+        cityIndexMap[citiesCopy[i]->name] = i;
+    }
+
+    City* departureCityNode = nullptr;
+    City* arrivalCityNode = nullptr;
+    for (int i = 0; i < citiesCopy.size(); ++i) {
+        if (citiesCopy[i]->name == departureCity) {
+            departureCityNode = citiesCopy[i];
+            distances[i] = 0; // 源点到自己的距离是0
+            predecessors[i] = nullptr;
+        }
+        if (citiesCopy[i]->name == arrivalCity) {
+            arrivalCityNode = citiesCopy[i];
+        }
+    }
+
+    if (!departureCityNode || !arrivalCityNode) return result; // 出发城市或到达城市不存在
+
+    std::priority_queue<std::pair<int, int>, std::vector<std::pair<int, int>>, std::greater<std::pair<int, int>>> pq;
+    pq.push(std::make_pair(0, cityIndexMap[departureCity])); // 将源点加入优先队列，距离为0
+
+    while (!pq.empty()) {
+        int currentDistance = pq.top().first;
+        int currentIndex = pq.top().second;
+        pq.pop();
+
+        City* currentCity = citiesCopy[currentIndex];
+
+        if (visited[currentIndex]) continue;
+        visited[currentIndex] = true;
+
+        for (FlightNode* node = currentCity->flights; node != nullptr; node = node->next) {
+            int nextIndex = -1;
+            for (int j = 0; j < citiesCopy.size(); ++j) {
+                if (citiesCopy[j]->name == node->flight->getArrivalCity()) {
+                    nextIndex = j;
+                    break;
+                }
+            }
+
+            if (nextIndex != -1) {
+                int distanceThroughU = currentDistance + node->flight->getFlightTime();
+                if (distanceThroughU < distances[nextIndex]) {
+                    distances[nextIndex] = distanceThroughU;
+                    predecessors[nextIndex] = currentCity;
+                    pq.push(std::make_pair(distanceThroughU, nextIndex));
+                }
+            }
+        }
+    }
+
+    // 重建从出发城市到到达城市的最短路径
+    int arrivalIndex = cityIndexMap[arrivalCity];
+    if (distances[arrivalIndex] != std::numeric_limits<int>::max()) {
+        totalDuration = distances[arrivalIndex];
+        City* currentCity = predecessors[arrivalIndex];
+        while (currentCity != nullptr) {
+            for (FlightNode* node = currentCity->flights; node != nullptr; node = node->next) {
+                if (node->flight->getArrivalCity() == arrivalCity) {
+                    result.prepend(*node->flight);
+                    currentCity = predecessors[cityIndexMap[node->flight->getDepartureCity()]];
+                    break;
+                }
+            }
+            if (currentCity == departureCityNode) break; // 到达源点，路径构建完成
+        }
+    }
+
+    return result;
 }

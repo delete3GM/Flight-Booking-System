@@ -57,3 +57,11 @@ QString Flight::showInfo()
 
 }
 
+
+bool Flight::operator == (const Flight& other) const
+{
+  return airline == other.airline && flightNumber == other.flightNumber &&
+         departureCity == other.departureCity &&
+         departureTime == other.departureTime &&
+         arrivalCity == other.arrivalCity && arrivalTime == other.arrivalTime;
+}

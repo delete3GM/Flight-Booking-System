@@ -1,5 +1,4 @@
 #include "User.h"
-#include "Flight.h"
 
 
 User::User() : familyName(""), givenName(""), sex(""), id(""), phone("") {}

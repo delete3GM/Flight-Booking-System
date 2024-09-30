@@ -50,6 +50,9 @@ public:
 
     QString showInfo();
 
+    // 判断两个航班是否一样
+    bool operator == (const Flight& other) const;
+
 
 };
 

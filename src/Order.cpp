@@ -1,6 +1,5 @@
 #include "Order.h"
 #include "User.h"
-#include "qdebug.h"
 #include <QString>
 
 Order::Order(){}
@@ -67,4 +66,10 @@ QString Order::toString() const
         .arg(flight.getPrice(), 0, 'f', 2)
         .arg(flight.getRemainSeatNum())
         .arg(status);
+}
+
+
+bool Order::operator==(const Order& other) const
+{
+    return orderId == other.orderId;
 }
