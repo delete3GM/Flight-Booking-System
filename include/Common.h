@@ -13,7 +13,9 @@ QTextStream* LoadTextFile(const QString& filename);
 int Duration(QString a, QString b);
 
 // 默认的航班数据路径
-#define FLIGHT_FILE							"data/flight_data.txt"
+#define FLIGHT_FILE							"D:/CS/projects/Flight_Ticket_Management_System/data/flight/flight_data.txt"
+// 订单数据路径
+#define ORDER_PATH                           "D:/CS/projects/Flight_Ticket_Management_System/data/order/"
 
 // 排序规则
 typedef enum Sort_Type

@@ -45,7 +45,7 @@
        </size>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>3</number>
       </property>
       <widget class="QWidget" name="loginPage">
        <widget class="QLabel" name="loginTitleLbl">
@@ -227,7 +227,7 @@
          </size>
         </property>
         <property name="currentIndex">
-         <number>1</number>
+         <number>0</number>
         </property>
         <widget class="QWidget" name="avaiOrder">
          <property name="sizePolicy">
@@ -379,7 +379,7 @@
        <widget class="QPushButton" name="exchangeBtn">
         <property name="geometry">
          <rect>
-          <x>430</x>
+          <x>360</x>
           <y>130</y>
           <width>56</width>
           <height>31</height>
@@ -400,6 +400,37 @@
         </property>
         <property name="text">
          <string>返回</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="searchTransBtn">
+        <property name="geometry">
+         <rect>
+          <x>710</x>
+          <y>290</y>
+          <width>161</width>
+          <height>61</height>
+         </rect>
+        </property>
+        <property name="font">
+         <font>
+          <family>Microsoft YaHei UI</family>
+          <pointsize>19</pointsize>
+          <italic>false</italic>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>转机查询</string>
+        </property>
+       </widget>
+       <widget class="QComboBox" name="userhintcomb">
+        <property name="geometry">
+         <rect>
+          <x>420</x>
+          <y>130</y>
+          <width>141</width>
+          <height>31</height>
+         </rect>
         </property>
        </widget>
       </widget>
@@ -724,6 +755,33 @@
          <string>取消</string>
         </property>
        </widget>
+      </widget>
+      <widget class="QWidget" name="mappage">
+       <layout class="QGridLayout" name="gridLayout_2">
+        <item row="0" column="0">
+         <widget class="QComboBox" name="airlineComb"/>
+        </item>
+        <item row="0" column="2">
+         <spacer name="horizontalSpacer">
+          <property name="orientation">
+           <enum>Qt::Orientation::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>775</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item row="0" column="1">
+         <widget class="QPushButton" name="backtoUser">
+          <property name="text">
+           <string>back</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </widget>
      </widget>
     </item>

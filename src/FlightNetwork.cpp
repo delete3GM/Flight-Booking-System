@@ -278,3 +278,98 @@ QVector<Flight> FlightNetwork::findShortestPath(const QString& departureCity, co
 
     return result;
 }
+
+QVector<QPair<Flight, Flight>>
+FlightNetwork::findTransferFlight(const QString &departureCity,
+                                  const QString &arrivalCity,
+                                  QDate selectedDate) {
+  // 我们从出发城市的航班中，依次查找到达城市的航班，查看是否有目的地城市的航班，加入到结果列表中
+  QVector<QPair<Flight, Flight>> result;
+  // 获取当前城市
+  City *departureCityNode = nullptr;
+  City *arrivalCityNode = nullptr;
+  for (auto *city : cities) {
+    if (city->name == departureCity) {
+      departureCityNode = city;
+    }
+    if (city->name == arrivalCity) {
+      arrivalCityNode = city;
+    }
+  }
+
+  // 从 departureCityNode 的航班中查找到达城市的航班
+  FlightNode *node = departureCityNode->flights;
+  while (node) {
+    QDateTime depDateTime = QDateTime::fromString(
+        node->flight->getDepartureTime(), "yyyy-MM-dd HH:mm");
+    // 获取当前航班的到达城市
+    QString currentArrivalCity = node->flight->getArrivalCity();
+    // 获取当前航班的到达时间
+    QDateTime currentArrivalTime = QDateTime::fromString(
+        node->flight->getArrivalTime(), "yyyy-MM-dd HH:mm");
+
+    City *currentArrivalCityNode = nullptr;
+    for (auto *city : cities) {
+      if (city->name == currentArrivalCity) {
+        currentArrivalCityNode = city;
+        break;
+      }
+    }
+
+    // 查看当前到达城市是否有飞往目的地的航班，并且起飞时间比落地时间晚
+    if (currentArrivalCityNode && currentArrivalTime.date() == selectedDate) {
+      FlightNode *transferNode = currentArrivalCityNode->flights;
+      while (transferNode) {
+        QDateTime transferDepTime = QDateTime::fromString(
+            transferNode->flight->getDepartureTime(), "yyyy-MM-dd HH:mm");
+        if (transferNode->flight->getArrivalCity() == arrivalCity &&
+            transferDepTime > currentArrivalTime && transferDepTime.date() == selectedDate) {
+          QPair<Flight, Flight> pair;
+          pair.first = *node->flight;
+          pair.second = *transferNode->flight;
+          result.append(pair);
+        }
+        transferNode = transferNode->next;
+      }
+    }
+    node = node->next;
+  }
+
+  return result;
+}
+
+QVector<QPair<Flight, Flight>> FlightNetwork::sortFlights(QVector<QPair<Flight, Flight>> flights, SORT_TYPE sortType){
+    if (flights.isEmpty()) {
+        return flights;
+    }
+    
+    switch (sortType) {
+    case SORT_BY_PRICE:
+        std::sort(flights.begin(), flights.end(),
+                [](const QPair<Flight, Flight> &a, const QPair<Flight, Flight> &b) {
+                    return a.first.getPrice() + a.second.getPrice() < b.first.getPrice() + b.second.getPrice();
+                });
+        break;
+    case SORT_BY_DURA:
+        std::sort(flights.begin(), flights.end(),
+                [](const QPair<Flight, Flight> &a, const QPair<Flight, Flight> &b) {
+                    return a.first.getFlightTime() + a.second.getFlightTime() < b.first.getFlightTime() + b.second.getFlightTime();
+                });
+        break;
+    case SORT_BY_TIME:
+        std::sort(flights.begin(), flights.end(),
+                [](const QPair<Flight, Flight> &a, const QPair<Flight, Flight> &b) {
+                    return a.first.getDepartureTime() < b.first.getDepartureTime();
+                });
+        break;
+    case SORT_BY_SEAT:
+        std::sort(flights.begin(), flights.end(),
+                [](const QPair<Flight, Flight> &a, const QPair<Flight, Flight> &b) {
+                    return a.first.getRemainSeatNum() + a.second.getRemainSeatNum() < b.first.getRemainSeatNum() + b.second.getRemainSeatNum();
+                });
+        break;
+    default:
+        break;
+    }
+    return flights;
+}

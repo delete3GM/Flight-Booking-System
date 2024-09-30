@@ -13,6 +13,9 @@
 #include <QUuid>
 #include <QListWidget>
 #include <QRadioButton>
+#include <QStandardItemModel>
+#include <QUuid>
+#include <qcontainerfwd.h>
 #include <qdatetime.h>
 
 Flight_Ticket_Management_System::Flight_Ticket_Management_System(QWidget *parent)
@@ -54,7 +57,8 @@ Flight_Ticket_Management_System::Flight_Ticket_Management_System(QWidget *parent
     // 搜索
     connect(ui->searchBtn, SIGNAL(released()),this,SLOT(Menu2Info()));
     connect(ui->searchBtn, SIGNAL(released()), this, SLOT(searchFlights())); // 直飞的查询
-    //connect(ui->searchBtn, SIGNAL(released()), this, SLOT(searchFlightsWithTransfers())); // 加入转机操作的查询
+    connect(ui->searchTransBtn, SIGNAL(released()),this,SLOT(Menu2Info()));
+    connect(ui->searchTransBtn, SIGNAL(released()), this, SLOT(searchFlightsWithTransfers())); // 加入转机操作的查询
 
     //按条件排序
     QButtonGroup *buttonGroup = new QButtonGroup(this);
@@ -93,7 +97,7 @@ void Flight_Ticket_Management_System::initLogin()
 
 void Flight_Ticket_Management_System::loadUserOrders()
 {
-    QString filePath = "order/" + currentId + ".txt";
+    QString filePath = ORDER_PATH + currentId + ".txt";
     QFile file(filePath);
 
     if (!file.exists()) {
@@ -263,6 +267,7 @@ void Flight_Ticket_Management_System::searchFlights()
 
         QVector<Flight> flights = network.searchFlights(depCity, arrCity, selectedDate);
         qDebug() << "Search results count:" << flights.size();
+        searchType = DIRECT;
         updateTableWidget(flights);
     }
 }
@@ -273,8 +278,11 @@ void Flight_Ticket_Management_System::updateSearch(int buttonId)
     QString arrCity = getArr(ui->arrBox->currentIndex());
     QDate selectedDate = ui->calendarWidget->selectedDate();
 
+  if(searchType == DIRECT)
+  {  
     // 搜索航班
-    QVector<Flight> flights = network.searchFlights(depCity, arrCity, selectedDate);
+    QVector<Flight> flights =
+        network.searchFlights(depCity, arrCity, selectedDate);
 
     // 根据选中的按钮设置排序类型
     SORT_TYPE sortType = SORT_NORMAL;
@@ -282,7 +290,7 @@ void Flight_Ticket_Management_System::updateSearch(int buttonId)
     case 1: // 默认排序
         sortType = SORT_NORMAL;
         qDebug() << "Sorting by normal";
-        break; 
+        break;
     case 2: // 按时长排序
         sortType = SORT_BY_DURA;
         qDebug() << "Sorting by dura";
@@ -305,6 +313,51 @@ void Flight_Ticket_Management_System::updateSearch(int buttonId)
     }
     // 更新表格显示
     updateTableWidget(flights);
+  }
+  else if(searchType==TRANSFER)
+  {
+    QVector<QPair<Flight, Flight>> flights = network.findTransferFlight(depCity, arrCity, selectedDate);
+    
+    // 排序
+    // 根据选中的按钮设置排序类型
+    SORT_TYPE sortType = SORT_NORMAL;
+    switch (buttonId) {
+    case 1: // 默认排序
+        sortType = SORT_NORMAL;
+        qDebug() << "Sorting by normal";
+        break;
+    case 2: // 按时长排序
+        sortType = SORT_BY_DURA;
+        qDebug() << "Sorting by dura";
+        break;
+    case 3: // 按最早排序
+        sortType = SORT_BY_TIME;
+        qDebug() << "Sorting by time";
+        break;
+    case 4: // 按价格排序
+        sortType = SORT_BY_PRICE;
+        qDebug() << "Sorting by price";
+        break;
+    default:
+        qDebug() << "Unknown button ID";
+        return;
+    }
+
+    if (sortType != SORT_NORMAL) {
+        flights = network.sortFlights(flights, sortType);
+    }
+
+    
+    // 这里将 pair 转换为两个对象进行存储
+    QVector<Flight> directFlights;
+    for (auto flight : flights) {
+      directFlights.push_back(flight.first);
+      directFlights.push_back(flight.second);
+    }
+    qDebug() << "Search results count:" << flights.size();
+    searchType = TRANSFER;
+    updateTableWidget(directFlights);
+  }
 }
 
 void Flight_Ticket_Management_System::searchFlightsWithTransfers()
@@ -317,9 +370,20 @@ void Flight_Ticket_Management_System::searchFlightsWithTransfers()
         QDate selectedDate = ui->calendarWidget->selectedDate();
 
         int totalDuration;
-        QVector<Flight> flights = network.findShortestPath(depCity, arrCity, selectedDate, totalDuration);
+        // QVector<Flight> flights = network.findShortestPath(depCity, arrCity,
+        // selectedDate, totalDuration);
+        QVector<QPair<Flight, Flight>> flights =
+            network.findTransferFlight(depCity, arrCity, selectedDate);
+        QVector<Flight> directFlights;
+        for (auto flight : flights) {
+          directFlights.push_back(flight.first);
+          directFlights.push_back(flight.second);
+        }
+
+        searchType = TRANSFER;
+        // 更新表格显示
         qDebug() << "Search results count:" << flights.size();
-        updateTableWidget(flights);
+        updateTableWidget(directFlights);
     }
 }
 
@@ -504,7 +568,7 @@ void Flight_Ticket_Management_System::addPassenger()
     network.writeDataToFile("data/flight_data.txt");
 
     // 保存到订单
-    QString filePath = "order/" + currentId + ".txt";
+    QString filePath = ORDER_PATH + currentId + ".txt";
     orderManager.loadOrdersFromFile(filePath);
     orderManager.addOrder(order); // 添加新订单到管理器
     if (!orderManager.saveOrdersToFile(filePath)) {

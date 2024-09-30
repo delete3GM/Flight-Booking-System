@@ -29,7 +29,9 @@ public:
     void writeDataToFile(const QString& filename);
     QVector<Flight> searchFlights(QString departureCity, QString arrivalCity, QDate selectedDate);
     QVector<Flight> sortFlights(QVector<Flight> flights, SORT_TYPE sortType);
+    QVector<QPair<Flight, Flight>> sortFlights(QVector<QPair<Flight, Flight>> flights, SORT_TYPE sortType);
     QVector<Flight> findShortestPath(const QString& departureCity, const QString& arrivalCity, QDate selectedDate, int& totalDuration);
+    QVector<QPair<Flight, Flight>> findTransferFlight(const QString& departureCity, const QString& arrivalCity, QDate selectedDate);
 
 };
 

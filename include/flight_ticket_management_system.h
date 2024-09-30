@@ -31,6 +31,11 @@ class Flight_Ticket_Management_System : public QMainWindow
         RESCHEDULE_ORDER // 改签订单
     };
 
+    enum SEARCH_TYPE{
+        DIRECT,
+        TRANSFER
+    };
+
 public:
     explicit Flight_Ticket_Management_System(QWidget *parent = nullptr);
     ~Flight_Ticket_Management_System();
@@ -47,6 +52,7 @@ public:
     OrderManager orderManager; //管理所有订单
     ORDER_TYPE orderType; //当前订单类型
     Order rescheduleOrder; //要改签的订单
+    SEARCH_TYPE searchType; //当前搜索类型
 
 
 private:
