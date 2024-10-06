@@ -160,7 +160,7 @@ QVector<Flight> FlightNetwork::searchFlights(QString departureCity, QString arri
 
 QVector<Flight> FlightNetwork::sortFlights(QVector<Flight> flights, SORT_TYPE sortType)
 {
-    if (flights.isEmpty()){
+    if (flights.isEmpty()) {
         return flights;
     }
 

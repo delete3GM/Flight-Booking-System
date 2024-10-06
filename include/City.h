@@ -2,7 +2,7 @@
 
 #include <QObject>
 #include <QString>
-#include "FlightNode.h"  // 引入FlightNode
+#include "FlightNode.h"
 
 class City : public QObject
 {

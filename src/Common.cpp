@@ -6,8 +6,7 @@ QTextStream* LoadTextFile(const QString& filename)
 {
     QFile* flight_file = new QFile(filename);
 
-    if (!flight_file->open(QIODevice::ReadOnly))
-    {
+    if (!flight_file->open(QIODevice::ReadOnly)){
         qInfo() << "open file failed!";
         delete flight_file;
         return nullptr;

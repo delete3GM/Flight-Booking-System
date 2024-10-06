@@ -46,7 +46,7 @@ QString Flight::toString() const
 
 QString Flight::showInfo()
 {
-    return QString("%1\n %2\n \n%3\n %4\n \n%5\n %6\n \n待支付￥%7")
+    return QString("%1\n%2\n%3\n%4\n%5\n%6\n\n待支付￥%7")
         .arg(airline)
         .arg(flightNumber)
         .arg(departureCity)

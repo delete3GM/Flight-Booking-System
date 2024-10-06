@@ -11,6 +11,7 @@
 
 #include <QtCore/QVariant>
 #include <QtGui/QIcon>
+#include <QtWebEngineWidgets/QWebEngineView>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QCalendarWidget>
 #include <QtWidgets/QComboBox>
@@ -85,8 +86,9 @@ public:
     QWidget *mappage;
     QGridLayout *gridLayout_2;
     QComboBox *airlineComb;
-    QSpacerItem *horizontalSpacer;
     QPushButton *backtoUser;
+    QSpacerItem *horizontalSpacer;
+    QWebEngineView *webEngineView;
 
     void setupUi(QMainWindow *Flight_Ticket_Management_System)
     {
@@ -200,7 +202,7 @@ public:
         depBox->setObjectName("depBox");
         depBox->setGeometry(QRect(200, 120, 131, 51));
         depBox->setFont(font1);
-        depBox->setLayoutDirection(Qt::LayoutDirection::LeftToRight);
+        depBox->setLayoutDirection(Qt::LeftToRight);
         depBox->setAutoFillBackground(false);
         depBox->setStyleSheet(QString::fromUtf8(""));
         arrBox = new QComboBox(menuPage);
@@ -241,7 +243,7 @@ public:
         QFont font8;
         font8.setPointSize(18);
         infoTitleLbl->setFont(font8);
-        infoTitleLbl->setAlignment(Qt::AlignmentFlag::AlignCenter);
+        infoTitleLbl->setAlignment(Qt::AlignCenter);
         flightTableWidget = new QTableWidget(flightInfoPage);
         flightTableWidget->setObjectName("flightTableWidget");
         flightTableWidget->setGeometry(QRect(70, 100, 800, 400));
@@ -307,9 +309,9 @@ public:
         submitBtn->setFont(font6);
         flightInfo = new QLabel(buyPage);
         flightInfo->setObjectName("flightInfo");
-        flightInfo->setGeometry(QRect(50, 60, 251, 391));
-        flightInfo->setFont(font2);
-        flightInfo->setAlignment(Qt::AlignmentFlag::AlignCenter);
+        flightInfo->setGeometry(QRect(50, 20, 251, 431));
+        flightInfo->setFont(font1);
+        flightInfo->setAlignment(Qt::AlignCenter);
         cancelBtn = new QPushButton(buyPage);
         cancelBtn->setObjectName("cancelBtn");
         cancelBtn->setGeometry(QRect(770, 440, 111, 41));
@@ -324,14 +326,20 @@ public:
 
         gridLayout_2->addWidget(airlineComb, 0, 0, 1, 1);
 
-        horizontalSpacer = new QSpacerItem(775, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
-
-        gridLayout_2->addItem(horizontalSpacer, 0, 2, 1, 1);
-
         backtoUser = new QPushButton(mappage);
         backtoUser->setObjectName("backtoUser");
 
         gridLayout_2->addWidget(backtoUser, 0, 1, 1, 1);
+
+        horizontalSpacer = new QSpacerItem(775, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+        gridLayout_2->addItem(horizontalSpacer, 0, 2, 1, 1);
+
+        webEngineView = new QWebEngineView(mappage);
+        webEngineView->setObjectName("webEngineView");
+        webEngineView->setUrl(QUrl(QString::fromUtf8("about:blank")));
+
+        gridLayout_2->addWidget(webEngineView, 1, 0, 1, 3);
 
         stackedWidget->addWidget(mappage);
 
@@ -341,7 +349,7 @@ public:
 
         retranslateUi(Flight_Ticket_Management_System);
 
-        stackedWidget->setCurrentIndex(3);
+        stackedWidget->setCurrentIndex(5);
         Orders->setCurrentIndex(0);
 
 
