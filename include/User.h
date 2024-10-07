@@ -14,7 +14,6 @@ private:
     QString sex;
     QString id;
     QString phone;
-    //QList<Flight> flightRecords;  // 飞行记录
 
 public:
     User();
@@ -33,7 +32,6 @@ public:
     QString toString()const;
 
     void addFlightRecord(const Flight& flight);
-    //QStringList getAllFlightRecords() const;
     static void saveUser(const QList<User>& userList);
 };
 extern QList<User> userList;

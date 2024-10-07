@@ -62,6 +62,25 @@ void OrderManager::loadOrdersFromFile(const QString& filePath) {
             }
 
         }
+        else if(fields.size()==23)
+        {
+            User user(fields[1], fields[2], fields[3], fields[4], fields[5]);
+            Flight flight1(fields[6], fields[7], fields[8], fields[9], fields[10], fields[11], fields[12].toDouble(), fields[13].toInt());
+            Flight flight2(fields[14], fields[15], fields[16], fields[17], fields[18], fields[19], fields[20].toDouble(), fields[21].toInt());
+            Order order(fields[0], user, flight1, fields[22], Order::OrderType::TRANSFER, flight2);
+
+            // 检查订单是否已存在
+            bool exists = false;
+            for (const Order& existingOrder : orders) {
+                if (existingOrder.getOrderId() == order.getOrderId()) {
+                    exists = true;
+                    break;
+                }
+            }
+            if (!exists) {
+                orders.append(order);
+            }
+        }
     }
     file.close();
 }

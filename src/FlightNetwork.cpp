@@ -1,10 +1,6 @@
 #include "FlightNetwork.h"
 #include <QDebug>
 #include <QDateTime>
-#include <limits>
-#include <queue>
-
-
 
 FlightNetwork::FlightNetwork(QObject* parent) : QObject(parent) {}
 
@@ -160,7 +156,7 @@ QVector<Flight> FlightNetwork::searchFlights(QString departureCity, QString arri
 
 QVector<Flight> FlightNetwork::sortFlights(QVector<Flight> flights, SORT_TYPE sortType)
 {
-    if (flights.isEmpty()) {
+    if (flights.isEmpty()){
         return flights;
     }
 
@@ -191,154 +187,62 @@ QVector<Flight> FlightNetwork::sortFlights(QVector<Flight> flights, SORT_TYPE so
     return flights;
 }
 
-// Dijkstra 需要该！
-QVector<Flight> FlightNetwork::findShortestPath(const QString& departureCity, const QString& arrivalCity, QDate selectedDate, int& totalDuration)
+
+
+QVector<QPair<Flight, Flight>> FlightNetwork::findTransferFlight(const QString &departureCity, const QString &arrivalCity, QDate selectedDate)
 {
-    QVector<City*> citiesCopy = getCities();
-    QVector<Flight> result;
-    totalDuration = std::numeric_limits<int>::max();
-
-    // 创建一个布尔数组来记录访问状态
-    std::vector<bool> visited(citiesCopy.size(), false);
-    // 创建一个距离表来记录源点到每个顶点的最短距离
-    std::vector<int> distances(citiesCopy.size(), std::numeric_limits<int>::max());
-    // 创建一个前驱表来重建最短路径
-    std::vector<City*> predecessors(citiesCopy.size(), nullptr);
-
-    // 创建一个映射来存储城市和它们索引的映射
-    std::map<QString, int> cityIndexMap;
-    for (int i = 0; i < citiesCopy.size(); ++i) {
-        cityIndexMap[citiesCopy[i]->name] = i;
-    }
-
-    City* departureCityNode = nullptr;
-    City* arrivalCityNode = nullptr;
-    for (int i = 0; i < citiesCopy.size(); ++i) {
-        if (citiesCopy[i]->name == departureCity) {
-            departureCityNode = citiesCopy[i];
-            distances[i] = 0; // 源点到自己的距离是0
-            predecessors[i] = nullptr;
+    // 从出发城市的航班中，依次查找到达城市的航班，查看是否有目的地城市的航班，加入到结果列表中
+    QVector<QPair<Flight, Flight>> result;
+    // 获取当前城市
+    City *departureCityNode = nullptr;
+    City *arrivalCityNode = nullptr;
+    for (auto *city : cities) {
+        if (city->name == departureCity) {
+            departureCityNode = city;
         }
-        if (citiesCopy[i]->name == arrivalCity) {
-            arrivalCityNode = citiesCopy[i];
+        if (city->name == arrivalCity) {
+            arrivalCityNode = city;
         }
     }
 
-    if (!departureCityNode || !arrivalCityNode) return result; // 出发城市或到达城市不存在
+    // 从 departureCityNode 的航班中查找到达城市的航班
+    FlightNode *node = departureCityNode->flights;
+    while (node) {
+        QDateTime depDateTime = QDateTime::fromString(node->flight->getDepartureTime(), "yyyy-MM-dd HH:mm");
 
-    std::priority_queue<std::pair<int, int>, std::vector<std::pair<int, int>>, std::greater<std::pair<int, int>>> pq;
-    pq.push(std::make_pair(0, cityIndexMap[departureCity])); // 将源点加入优先队列，距离为0
+        QString currentArrivalCity = node->flight->getArrivalCity();
+        QDateTime currentArrivalTime = QDateTime::fromString(node->flight->getArrivalTime(), "yyyy-MM-dd HH:mm");
 
-    while (!pq.empty()) {
-        int currentDistance = pq.top().first;
-        int currentIndex = pq.top().second;
-        pq.pop();
-
-        City* currentCity = citiesCopy[currentIndex];
-
-        if (visited[currentIndex]) continue;
-        visited[currentIndex] = true;
-
-        for (FlightNode* node = currentCity->flights; node != nullptr; node = node->next) {
-            int nextIndex = -1;
-            for (int j = 0; j < citiesCopy.size(); ++j) {
-                if (citiesCopy[j]->name == node->flight->getArrivalCity()) {
-                    nextIndex = j;
-                    break;
-                }
-            }
-
-            if (nextIndex != -1) {
-                int distanceThroughU = currentDistance + node->flight->getFlightTime();
-                if (distanceThroughU < distances[nextIndex]) {
-                    distances[nextIndex] = distanceThroughU;
-                    predecessors[nextIndex] = currentCity;
-                    pq.push(std::make_pair(distanceThroughU, nextIndex));
-                }
+        City *currentArrivalCityNode = nullptr;
+        for (auto *city : cities) {
+            if (city->name == currentArrivalCity) {
+                currentArrivalCityNode = city;
+                break;
             }
         }
-    }
 
-    // 重建从出发城市到到达城市的最短路径
-    int arrivalIndex = cityIndexMap[arrivalCity];
-    if (distances[arrivalIndex] != std::numeric_limits<int>::max()) {
-        totalDuration = distances[arrivalIndex];
-        City* currentCity = predecessors[arrivalIndex];
-        while (currentCity != nullptr) {
-            for (FlightNode* node = currentCity->flights; node != nullptr; node = node->next) {
-                if (node->flight->getArrivalCity() == arrivalCity) {
-                    result.prepend(*node->flight);
-                    currentCity = predecessors[cityIndexMap[node->flight->getDepartureCity()]];
-                    break;
+        // 查看当前到达城市是否有飞往目的地的航班，并且起飞时间比落地时间晚
+        if (currentArrivalCityNode && currentArrivalTime.date() == selectedDate) {
+            FlightNode *transferNode = currentArrivalCityNode->flights;
+            while (transferNode) {
+                QDateTime transferDepTime = QDateTime::fromString(transferNode->flight->getDepartureTime(), "yyyy-MM-dd HH:mm");
+                if (transferNode->flight->getArrivalCity() == arrivalCity &&
+                    transferDepTime > currentArrivalTime && transferDepTime.date() == selectedDate) {
+                    QPair<Flight, Flight> pair;
+                    pair.first = *node->flight;
+                    pair.second = *transferNode->flight;
+                    result.append(pair);
                 }
+                transferNode = transferNode->next;
             }
-            if (currentCity == departureCityNode) break; // 到达源点，路径构建完成
         }
+        node = node->next;
     }
-
     return result;
 }
 
-QVector<QPair<Flight, Flight>>
-FlightNetwork::findTransferFlight(const QString &departureCity,
-                                  const QString &arrivalCity,
-                                  QDate selectedDate) {
-  // 我们从出发城市的航班中，依次查找到达城市的航班，查看是否有目的地城市的航班，加入到结果列表中
-  QVector<QPair<Flight, Flight>> result;
-  // 获取当前城市
-  City *departureCityNode = nullptr;
-  City *arrivalCityNode = nullptr;
-  for (auto *city : cities) {
-    if (city->name == departureCity) {
-      departureCityNode = city;
-    }
-    if (city->name == arrivalCity) {
-      arrivalCityNode = city;
-    }
-  }
-
-  // 从 departureCityNode 的航班中查找到达城市的航班
-  FlightNode *node = departureCityNode->flights;
-  while (node) {
-    QDateTime depDateTime = QDateTime::fromString(
-        node->flight->getDepartureTime(), "yyyy-MM-dd HH:mm");
-    // 获取当前航班的到达城市
-    QString currentArrivalCity = node->flight->getArrivalCity();
-    // 获取当前航班的到达时间
-    QDateTime currentArrivalTime = QDateTime::fromString(
-        node->flight->getArrivalTime(), "yyyy-MM-dd HH:mm");
-
-    City *currentArrivalCityNode = nullptr;
-    for (auto *city : cities) {
-      if (city->name == currentArrivalCity) {
-        currentArrivalCityNode = city;
-        break;
-      }
-    }
-
-    // 查看当前到达城市是否有飞往目的地的航班，并且起飞时间比落地时间晚
-    if (currentArrivalCityNode && currentArrivalTime.date() == selectedDate) {
-      FlightNode *transferNode = currentArrivalCityNode->flights;
-      while (transferNode) {
-        QDateTime transferDepTime = QDateTime::fromString(
-            transferNode->flight->getDepartureTime(), "yyyy-MM-dd HH:mm");
-        if (transferNode->flight->getArrivalCity() == arrivalCity &&
-            transferDepTime > currentArrivalTime && transferDepTime.date() == selectedDate) {
-          QPair<Flight, Flight> pair;
-          pair.first = *node->flight;
-          pair.second = *transferNode->flight;
-          result.append(pair);
-        }
-        transferNode = transferNode->next;
-      }
-    }
-    node = node->next;
-  }
-
-  return result;
-}
-
-QVector<QPair<Flight, Flight>> FlightNetwork::sortFlights(QVector<QPair<Flight, Flight>> flights, SORT_TYPE sortType){
+QVector<QPair<Flight, Flight>> FlightNetwork::sortFlights(QVector<QPair<Flight, Flight>> flights, SORT_TYPE sortType)
+{
     if (flights.isEmpty()) {
         return flights;
     }

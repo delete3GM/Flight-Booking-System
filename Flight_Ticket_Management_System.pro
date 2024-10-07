@@ -11,6 +11,7 @@ CONFIG += c++17
 
 # 添加源文件路径
 SOURCES += \
+    loginwindow.cpp \
     src/Common.cpp \
     src/Flight.cpp \
     src/FlightNetwork.cpp \
@@ -32,10 +33,12 @@ HEADERS += \
     include/Order.h \
     include/OrderManager.h \
     include/User.h \
-    include/flight_ticket_management_system.h
+    include/flight_ticket_management_system.h \
+    loginwindow.h
 
 FORMS += \
-    flight_ticket_management_system.ui
+    flight_ticket_management_system.ui \
+    loginwindow.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

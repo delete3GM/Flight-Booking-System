@@ -12,9 +12,9 @@ QTextStream* LoadTextFile(const QString& filename);
 //计算飞行时长
 int Duration(QString a, QString b);
 
-// 默认的航班数据路径
+// 航班文件存储路径
 #define FLIGHT_FILE							"D:/CS/projects/Flight_Ticket_Management_System/data/flight/flight_data.txt"
-
+// 订单文件存储路径
 #define ORDER_PATH                           "D:/CS/projects/Flight_Ticket_Management_System/data/order/"
 
 // 排序规则

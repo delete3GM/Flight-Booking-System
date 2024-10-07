@@ -85,9 +85,9 @@ public:
     QPushButton *cancelBtn;
     QWidget *mappage;
     QGridLayout *gridLayout_2;
+    QSpacerItem *horizontalSpacer;
     QComboBox *airlineComb;
     QPushButton *backtoUser;
-    QSpacerItem *horizontalSpacer;
     QWebEngineView *webEngineView;
 
     void setupUi(QMainWindow *Flight_Ticket_Management_System)
@@ -202,7 +202,7 @@ public:
         depBox->setObjectName("depBox");
         depBox->setGeometry(QRect(200, 120, 131, 51));
         depBox->setFont(font1);
-        depBox->setLayoutDirection(Qt::LeftToRight);
+        depBox->setLayoutDirection(Qt::LayoutDirection::LeftToRight);
         depBox->setAutoFillBackground(false);
         depBox->setStyleSheet(QString::fromUtf8(""));
         arrBox = new QComboBox(menuPage);
@@ -243,7 +243,7 @@ public:
         QFont font8;
         font8.setPointSize(18);
         infoTitleLbl->setFont(font8);
-        infoTitleLbl->setAlignment(Qt::AlignCenter);
+        infoTitleLbl->setAlignment(Qt::AlignmentFlag::AlignCenter);
         flightTableWidget = new QTableWidget(flightInfoPage);
         flightTableWidget->setObjectName("flightTableWidget");
         flightTableWidget->setGeometry(QRect(70, 100, 800, 400));
@@ -287,7 +287,6 @@ public:
         isMale->setObjectName("isMale");
         isMale->setGeometry(QRect(430, 210, 51, 21));
         isMale->setFont(font4);
-        isMale->setStyleSheet(QString::fromUtf8(""));
         isMale->setCheckable(true);
         isMale->setChecked(false);
         isMale->setAutoRepeat(false);
@@ -311,7 +310,7 @@ public:
         flightInfo->setObjectName("flightInfo");
         flightInfo->setGeometry(QRect(50, 20, 251, 431));
         flightInfo->setFont(font1);
-        flightInfo->setAlignment(Qt::AlignCenter);
+        flightInfo->setAlignment(Qt::AlignmentFlag::AlignCenter);
         cancelBtn = new QPushButton(buyPage);
         cancelBtn->setObjectName("cancelBtn");
         cancelBtn->setGeometry(QRect(770, 440, 111, 41));
@@ -321,25 +320,25 @@ public:
         mappage->setObjectName("mappage");
         gridLayout_2 = new QGridLayout(mappage);
         gridLayout_2->setObjectName("gridLayout_2");
+        horizontalSpacer = new QSpacerItem(200, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+        gridLayout_2->addItem(horizontalSpacer, 0, 4, 1, 1);
+
         airlineComb = new QComboBox(mappage);
         airlineComb->setObjectName("airlineComb");
 
-        gridLayout_2->addWidget(airlineComb, 0, 0, 1, 1);
+        gridLayout_2->addWidget(airlineComb, 0, 0, 1, 2);
 
         backtoUser = new QPushButton(mappage);
         backtoUser->setObjectName("backtoUser");
 
-        gridLayout_2->addWidget(backtoUser, 0, 1, 1, 1);
-
-        horizontalSpacer = new QSpacerItem(775, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
-
-        gridLayout_2->addItem(horizontalSpacer, 0, 2, 1, 1);
+        gridLayout_2->addWidget(backtoUser, 0, 2, 1, 1);
 
         webEngineView = new QWebEngineView(mappage);
         webEngineView->setObjectName("webEngineView");
-        webEngineView->setUrl(QUrl(QString::fromUtf8("about:blank")));
+        webEngineView->setProperty("url", QVariant(QUrl(QString::fromUtf8("about:blank"))));
 
-        gridLayout_2->addWidget(webEngineView, 1, 0, 1, 3);
+        gridLayout_2->addWidget(webEngineView, 1, 0, 1, 5);
 
         stackedWidget->addWidget(mappage);
 

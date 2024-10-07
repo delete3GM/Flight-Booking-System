@@ -102,7 +102,7 @@ private slots:
 
 
 protected:
-    void mousePressEvent(QMouseEvent *event) override; // 重写鼠标点击事件
+    void mousePressEvent(QMouseEvent *event) override;
 
     QMap<QString, QPair<float, float>> cityCoordinates = {
         QPair<QString, QPair<float, float>>(
@@ -128,7 +128,7 @@ protected:
         QPair<QString, QPair<float, float>>(
             "成都", QPair<float, float>(30.5728f, 104.0668f))};
 
-  private:
+private:
     float departureCity_x = 0;
     float departureCity_y = 0;
     float arrivalCity_x = 0;

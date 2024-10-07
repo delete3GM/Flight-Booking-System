@@ -75,7 +75,7 @@ Flight_Ticket_Management_System::Flight_Ticket_Management_System(QWidget *parent
     buttonGroup->addButton(ui->early_sort, 3);
     buttonGroup->addButton(ui->price_sort, 4);
     ui->default_sort->setChecked(true);
-    buttonGroup->setExclusive(true);  // 确保按钮互斥
+    buttonGroup->setExclusive(true);
     connect(buttonGroup, SIGNAL(idClicked(int)), this, SLOT(updateSearch(int)));
 
     //填写乘客信息
@@ -207,28 +207,26 @@ void Flight_Ticket_Management_System::Start2Menu()
     ui->showCalendarBtn->setText("选择出发日期");
     ui->stackedWidget->setCurrentWidget(ui->menuPage);
 
-    // 这里我们根据用户的订单来给用户一些出发地和到达地的提示
+    // 根据用户的订单来给用户一些出发地和到达地的提示
 
     QVector<QPair<QString, QString>> cityPairs;
     for (auto order : orderManager.getOrders()) {
-      // 添加城市，但是不要添加重复的
+      // 添加城市
       QPair<QString, QString> cityPair;
       cityPair.first = order.getFlight().getDepartureCity();
       cityPair.second = order.getFlight().getArrivalCity();
       if (!cityPairs.contains(cityPair))
         cityPairs.push_back(cityPair);
     }
-    // 删除原来的
+
     ui->userhintcomb->clear();
-    // 在界面添加 label 来个用户提示
+    // 在界面添加label
     for (auto citypair : cityPairs) {
-      //添加
         QString hint1 =citypair.first + "->" + citypair.second;
         ui->userhintcomb->addItem(hint1);
         QString hint2 =citypair.second + "->" + citypair.first;
         ui->userhintcomb->addItem(hint2);
     }
-
 }
 
 void Flight_Ticket_Management_System::Start2User()
@@ -249,14 +247,15 @@ void Flight_Ticket_Management_System::toInfo()
     ui->stackedWidget->setCurrentWidget(ui->flightInfoPage);
 }
 
-void Flight_Ticket_Management_System::setUserHint(int index) {
-    if(index<0){
+void Flight_Ticket_Management_System::setUserHint(int index)
+{
+    if(index < 0) {
         return;
     }
-  QString hint = ui->userhintcomb->itemText(index);
-  QStringList cityNames = hint.split("->");
-  ui->depBox->setCurrentText(cityNames[0]);
-  ui->arrBox->setCurrentText(cityNames[1]);
+    QString hint = ui->userhintcomb->itemText(index);
+    QStringList cityNames = hint.split("->");
+    ui->depBox->setCurrentText(cityNames[0]);
+    ui->arrBox->setCurrentText(cityNames[1]);
 }
 
 void Flight_Ticket_Management_System::Exit()
@@ -445,9 +444,6 @@ void Flight_Ticket_Management_System::searchFlightsWithTransfers()
         QString arrCity = getArr(ui->arrBox->currentIndex());
         QDate selectedDate = ui->calendarWidget->selectedDate();
 
-        int totalDuration;
-        // QVector<Flight> flights = network.findShortestPath(depCity, arrCity,
-        // selectedDate, totalDuration);
         QVector<QPair<Flight, Flight>> flights =
             network.findTransferFlight(depCity, arrCity, selectedDate);
         QVector<Flight> directFlights;
@@ -837,11 +833,18 @@ void Flight_Ticket_Management_System::addPassenger()
     // 创建乘客对象
     User passenger(familyName, givenName, sex, passengerId, passengerPhone);
     qDebug() << "乘客信息已提交:" << passenger.toString();
-
+    Order *order = nullptr;
     // 创建订单对象
-    Flight thisFlight = selectedFlight;
-    Order order(QUuid::createUuid().toString(), passenger, thisFlight, "已支付");
-    
+    if(searchType == DIRECT)
+    {
+        order = new Order(QUuid::createUuid().toString(), passenger, selectedFlight, "已支付");
+    }
+    else if(searchType == TRANSFER)
+    {
+        order = new Order(QUuid::createUuid().toString(), passenger, selectedFlight, "已支付",Order::OrderType::TRANSFER,selectedFlight2);
+    }
+
+    Flight thisFlight = selectedFlight;    
     // 减少余票数
     for (City* city : network.getCities()) {
         FlightNode* node = city->flights;
@@ -854,7 +857,22 @@ void Flight_Ticket_Management_System::addPassenger()
             node = node->next;
         }
     }
-    qInfo() << "ORDER:" << order.toString();
+    if(searchType == TRANSFER)
+    {
+        thisFlight = selectedFlight2;
+        for (City* city : network.getCities()) {
+            FlightNode* node = city->flights;
+            while (node) {
+                if (node->flight->getFlightNumber() == thisFlight.getFlightNumber()) {
+                    node->flight->setRemainSeatNum(node->flight->getRemainSeatNum() - 1);
+                    qDebug() << "Updated remaining seats for flight " << thisFlight.getFlightNumber() << " to " << node->flight->getRemainSeatNum();
+                    break;
+                }
+                node = node->next;
+            }
+        }
+    }
+    qInfo() << "ORDER:" << order->toString();
 
     // 写回航班文件
     network.writeDataToFile(FLIGHT_FILE);
@@ -862,57 +880,15 @@ void Flight_Ticket_Management_System::addPassenger()
     // 保存到订单
     QString filePath = ORDER_PATH + currentId + ".txt";
     orderManager.loadOrdersFromFile(filePath);
-    orderManager.addOrder(order); // 添加新订单到管理器
+    orderManager.addOrder(*order); // 添加新订单到管理器
+    delete order;
     if (!orderManager.saveOrdersToFile(filePath)) {
         QMessageBox::warning(this, "错误", "保存订单失败！");
         return;
     } else {
         qInfo() << "此订单已保存在" << currentId << ".txt文件中";
     }
-
-    if (searchType == TRANSFER) {
-      Flight thisFlight = selectedFlight2;
-      Order order(QUuid::createUuid().toString(), passenger, thisFlight,
-                  "已支付");
-
-      // 减少余票数
-      for (City *city : network.getCities()) {
-        FlightNode *node = city->flights;
-        while (node) {
-          if (node->flight->getFlightNumber() == thisFlight.getFlightNumber()) {
-            node->flight->setRemainSeatNum(node->flight->getRemainSeatNum() -
-                                           1);
-            qDebug() << "Updated remaining seats for flight "
-                     << thisFlight.getFlightNumber() << " to "
-                     << node->flight->getRemainSeatNum();
-            break;
-          }
-          node = node->next;
-        }
-      }
-      qInfo() << "ORDER:" << order.toString();
-
-      // 写回航班文件
-      network.writeDataToFile(FLIGHT_FILE);
-
-      // 保存到订单
-      QString filePath = ORDER_PATH + currentId + ".txt";
-      orderManager.loadOrdersFromFile(filePath);
-      orderManager.addOrder(order); // 添加新订单到管理器
-      if (!orderManager.saveOrdersToFile(filePath)) {
-        QMessageBox::warning(this, "错误", "保存订单失败！");
-        return;
-      } else {
-        qInfo() << "此订单已保存在" << currentId << ".txt文件中";
-      }
-    }
-
-    if(searchType == TRANSFER)
-    {
-        Flight thisFlight = selectedFlight2;
-        Order order(QUuid::createUuid().toString(), passenger, thisFlight, "已支付");
-    }
-    // 这里我们判断是否是改签订单
+    
     if(orderType==RESCHEDULE_ORDER){
         // 修改原订单状态为已改签
         rescheduleOrder.setStatus("已改签");
@@ -936,13 +912,29 @@ void Flight_Ticket_Management_System::addPassenger()
                 node = node->next;
             }
         }
+
+        if(rescheduleOrder.getType() == Order::OrderType::TRANSFER) {
+            // 增加余票信息
+            for (City *city : network.getCities()) {
+              FlightNode *node = city->flights;
+              while (node) {
+                if (node->flight->getFlightNumber() == rescheduleOrder.getFlight2().getFlightNumber()) {
+                  node->flight->setRemainSeatNum(node->flight->getRemainSeatNum() + 1);
+                  qDebug() << "Updated remaining seats for flight"
+                           << rescheduleOrder.getFlight2().getFlightNumber() << "to"
+                           << node->flight->getRemainSeatNum();
+                  break;
+                }
+                node = node->next;
+              }
+            }
+        }
         QMessageBox::information(this, "确认", "改签成功！");
         orderType = NONE;
     }
     else{
         QMessageBox::information(this, "确认", "订票成功！");
     }
-
 
     toStart();
     ui->isMale->setCheckable(false);
@@ -1035,7 +1027,16 @@ void Flight_Ticket_Management_System::displayOrders(QTabWidget* tabWidget, const
             currentTable->insertRow(rowNum);
 
             QTableWidgetItem *nameItem = new QTableWidgetItem(order.getPassenger().getFamilyName() + " " + order.getPassenger().getGivenName());
-            QTableWidgetItem *flightItem = new QTableWidgetItem(order.getFlight().toString());
+
+            QTableWidgetItem *flightItem = nullptr;
+            if(order.getType()==Order::OrderType::DIRECT)
+            {
+                flightItem = new QTableWidgetItem(order.getFlight().toString());
+            }
+            else if(order.getType()==Order::OrderType::TRANSFER)
+            {
+                flightItem = new QTableWidgetItem(order.getFlight().toString() + "\n" + order.getFlight2().toString());
+            }
             QTableWidgetItem *statusItem = new QTableWidgetItem(order.getStatus());
 
             nameItem->setTextAlignment(Qt::AlignCenter);
@@ -1085,12 +1086,11 @@ void Flight_Ticket_Management_System::handleRefund(const QString& orderId)
         Order& order = orderManager.getOrders()[i];
         if (order.getOrderId() == orderId) {
             orderFound = true;
-            // 检查订单状态是否允许退票
+            // 检查订单状态
             if (order.getStatus() == "已支付") {
-                // 更新订单状态为“已退票”
                 order.setStatus("已退票");
 
-                // 找到对应的航班并增加余票数
+                // 增加余票数
                 QString flightNumber = order.getFlight().getFlightNumber();
                 for (City* city : network.getCities()) {
                     FlightNode* node = city->flights;
@@ -1111,10 +1111,7 @@ void Flight_Ticket_Management_System::handleRefund(const QString& orderId)
                     return;
                 } else qDebug()<<"save "<<filePath;
 
-                // 将更新后的航班信息写回文件
-                network.writeDataToFile("data/flight_data.txt");
-
-                // 显示退票成功的消息
+                network.writeDataToFile(FLIGHT_FILE);
                 QMessageBox::information(this, "操作成功", "退票成功！");
                 return;
             } else {
@@ -1127,6 +1124,7 @@ void Flight_Ticket_Management_System::handleRefund(const QString& orderId)
     if (!orderFound) {
         QMessageBox::warning(this, "错误", "未找到订单！");
     }
+
 }
 
 void Flight_Ticket_Management_System::handleReschedule(const QString& orderId)
@@ -1139,17 +1137,15 @@ void Flight_Ticket_Management_System::handleReschedule(const QString& orderId)
 
             if (order.getStatus() == "已支付") {
                Flight flight  = order.getFlight();
-
                // 设置航班信息到订票页面
                auto departureCity = flight.getDepartureCity();
                auto arrivalCity = flight.getArrivalCity();
+
                ui->depBox->setCurrentText(departureCity);
                ui->arrBox->setCurrentText(arrivalCity);
                QDate date = QDate::fromString(flight.getDepartureTime().mid(0, 10), "yyyy-MM-dd");
                ui->calendarWidget->setSelectedDate(date);
                ui->showCalendarBtn->setText(date.toString("yyyy-MM-dd"));
-
-               //转到订票界面
                ui->stackedWidget->setCurrentWidget(ui->menuPage);
                rescheduleOrder = order;
                orderType = RESCHEDULE_ORDER;
@@ -1164,30 +1160,53 @@ void Flight_Ticket_Management_System::handleReschedule(const QString& orderId)
     if (!orderFound) {
         QMessageBox::warning(this, "错误", "未找到订单！");
     }
+
 }
 
 void Flight_Ticket_Management_System::showMap() {
-  ui->stackedWidget->setCurrentWidget(ui->mappage);
-  ui->airlineComb->clear();
+    ui->stackedWidget->setCurrentWidget(ui->mappage);
+    ui->airlineComb->clear();
+    // 将订单中已支付的航班显示在地图上
+    ui->airlineComb->addItem("全部航线");
+    auto orders = orderManager.getOrders();
+    for (auto order : orders) {
 
-  // 将订单中已支付的航班显示在地图上
-  ui->airlineComb->addItem("所有");
-  auto orders = orderManager.getOrders();
-  for (auto order : orders) {
-    if (order.getStatus() == "已支付") {
-      Flight flight = order.getFlight();
-      QString depCity = flight.getDepartureCity();
-      QString arrCity = flight.getArrivalCity();
-      QString info = depCity + "->" + arrCity;
-      ui->airlineComb->addItem(info);
+        //qDebug()<<order.toString()<<"  " << Order::orderTypeToString(order.getType()) << "\n";
+
+        if (order.getStatus() == "已支付") {
+            if(order.getType() == Order::OrderType::DIRECT) {
+                // Flight flight = order.getFlight();
+                // QString airline = flight.getAirline();
+                // if (!ui->airlineComb->findText(airline)) {
+                //     ui->airlineComb->addItem(airline);
+                // }
+                Flight flight = order.getFlight();
+                QString item;
+                item.append(flight.getDepartureCity());
+                item.append("->");
+                item.append(flight.getArrivalCity());
+                ui->airlineComb->addItem(item);
+            }
+            else if(order.getType() == Order::OrderType::TRANSFER) {
+                Flight flight1 = order.getFlight();
+                Flight flight2 = order.getFlight2();
+                QString item;
+                item.append(flight1.getDepartureCity());
+                item.append("->");
+                item.append(flight1.getArrivalCity());
+                item.append("->");
+                item.append(flight2.getArrivalCity());
+                ui->airlineComb->addItem(item);
+
+            }
+        }
     }
-  }
-  connect(ui->webEngineView, &QWebEngineView::loadFinished, this,
-            [&](bool load) {
-              if (load) {
-                displayMap(0);
-              }
-            });
+      connect(ui->webEngineView, &QWebEngineView::loadFinished, this,
+                [&](bool load) {
+                  if (load) {
+                    displayMap(0);
+                  }
+                });
 }
 
 void Flight_Ticket_Management_System::displayMap(int index) {
@@ -1208,17 +1227,42 @@ void Flight_Ticket_Management_System::displayMap(int index) {
         departureCity_y = cityCoordinates[depCity].second;
         arrivalCity_x = cityCoordinates[arrCity].first;
         arrivalCity_y = cityCoordinates[arrCity].second;
-        QString jsCode = QString("drawGeodesicLineAll(%1, %2, %3, %4, '%5');")
+        QString jsCode =
+            QString("drawGeodesicLineAll(%1, %2, %3, %4, '%5');")
                 .arg(departureCity_x)
                 .arg(departureCity_y)
                 .arg(arrivalCity_x)
                 .arg(arrivalCity_y)
                 .arg(flight.getAirline() + flight.getFlightNumber());
+
         ui->webEngineView->page()->runJavaScript(
             jsCode, [](const QVariant &result) {
               std::cout << "JavaScript execution result:"
                         << result.toString().toStdString();
             });
+
+        if(order.getType() == Order::OrderType::TRANSFER)
+        {
+            Flight flight2 = order.getFlight2();
+            QString depCity2 = flight2.getDepartureCity();
+            QString arrCity2 = flight2.getArrivalCity();
+            departureCity_x = cityCoordinates[depCity2].first;
+            departureCity_y = cityCoordinates[depCity2].second;
+            arrivalCity_x = cityCoordinates[arrCity2].first;
+            arrivalCity_y = cityCoordinates[arrCity2].second;
+            QString jsCode2 = QString("drawGeodesicLineAll(%1, %2, %3, %4, '%5');")
+                                 .arg(departureCity_x)
+                                 .arg(departureCity_y)
+                                 .arg(arrivalCity_x)
+                                 .arg(arrivalCity_y)
+                                 .arg(flight2.getAirline() + flight2.getFlightNumber());
+
+            ui->webEngineView->page()->runJavaScript(
+                jsCode2, [](const QVariant &result) {
+                  std::cout << "JavaScript execution result:"
+                            << result.toString().toStdString();
+                });
+        }
       }
     }
   } else {
@@ -1246,5 +1290,28 @@ void Flight_Ticket_Management_System::displayMap(int index) {
           std::cout << "JavaScript execution result:"
                     << result.toString().toStdString();
         });
+
+    if(filterorders[index - 1].getType() == Order::OrderType::TRANSFER)
+    {
+        Flight flight2 = filterorders[index - 1].getFlight2();
+        QString depCity2 = flight2.getDepartureCity();
+        QString arrCity2 = flight2.getArrivalCity();
+        departureCity_x = cityCoordinates[depCity2].first;
+        departureCity_y = cityCoordinates[depCity2].second;
+        arrivalCity_x = cityCoordinates[arrCity2].first;
+        arrivalCity_y = cityCoordinates[arrCity2].second;
+        QString jsCode2 = QString("drawGeodesicLineAll(%1, %2, %3, %4, '%5');")
+                             .arg(departureCity_x)
+                             .arg(departureCity_y)
+                             .arg(arrivalCity_x)
+                             .arg(arrivalCity_y)
+                             .arg(flight2.getAirline() + flight2.getFlightNumber());
+
+        ui->webEngineView->page()->runJavaScript(
+            jsCode2, [](const QVariant &result) {
+              std::cout << "JavaScript execution result:"
+                        << result.toString().toStdString();
+            });
+    }
   }
 }
