@@ -1,38 +1,81 @@
 #include "Flight.h"
-#include "Common.h"
+#include "Utils.h"
 #include <QTextStream>
 #include <QDateTime>
 
 Flight::Flight(){}
 
-QString Flight::getAirline() const { return airline; }
-void Flight::setAirline(const QString &a) { airline = a; }
 
-QString Flight::getFlightNumber() const { return flightNumber; }
-void Flight::setFlightNumber(const QString &f) { flightNumber = f; }
 
-QString Flight::getDepartureCity() const { return departureCity; }
-void Flight::setDepartureCity(const QString &d) { departureCity = d; }
+QString Flight::getAirline() const {
+    return airline;
+}
 
-QString Flight::getDepartureTime() const { return departureTime; }
-void Flight::setDepartureTime(const QString &depTime) { departureTime = depTime; }
+QString Flight::getFlightNumber() const {
+    return flightNumber;
+}
 
-QString Flight::getArrivalCity() const { return arrivalCity; }
-void Flight::setArrivalCity(const QString &aCity) { arrivalCity = aCity; }
+QString Flight::getDepartureCity() const {
+    return departureCity;
+}
 
-QString Flight::getArrivalTime() const { return arrivalTime; }
-void Flight::setArrivalTime(const QString &arrTime) { arrivalTime = arrTime; }
+QString Flight::getDepartureTime() const {
+    return departureTime;
+}
 
-double Flight::getPrice() const { return price; }
-void Flight::setPrice(double p) { price = p; }
+QString Flight::getArrivalCity() const {
+    return arrivalCity;
+}
 
-int Flight::getRemainSeatNum() const { return remainSeatNum; }
-void Flight::setRemainSeatNum(int remainSeat) { remainSeatNum = remainSeat; }
+QString Flight::getArrivalTime() const {
+    return arrivalTime;
+}
 
-int Flight::getFlightTime() const { return Duration(departureTime, arrivalTime); }
+double Flight::getPrice() const {
+    return price;
+}
 
-QString Flight::toString() const
-{
+int Flight::getRemainSeatNum() const {
+    return remainSeatNum;
+}
+
+int Flight::getFlightTime() const {
+    return Duration(departureTime, arrivalTime);
+}
+
+void Flight::setAirline(const QString &a) {
+    airline = a;
+}
+
+void Flight::setFlightNumber(const QString &f) {
+    flightNumber = f;
+}
+
+void Flight::setDepartureCity(const QString &d) {
+    departureCity = d;
+}
+
+void Flight::setDepartureTime(const QString &depTime) {
+    departureTime = depTime;
+}
+
+void Flight::setArrivalCity(const QString &aCity) {
+    arrivalCity = aCity;
+}
+
+void Flight::setArrivalTime(const QString &arrTime) {
+    arrivalTime = arrTime;
+}
+
+void Flight::setPrice(double p) {
+    price = p;
+}
+
+void Flight::setRemainSeatNum(int remainSeat) {
+    remainSeatNum = remainSeat;
+}
+
+QString Flight::toString() const {
     return QString("%1, %2, %3, %4, %5, %6, %7, %8")
     .arg(airline)
         .arg(flightNumber)
@@ -44,22 +87,20 @@ QString Flight::toString() const
         .arg(QString::number(remainSeatNum));
 }
 
-QString Flight::showInfo()
-{
-    return QString("%1\n%2\n%3\n%4\n%5\n%6\n\n待支付￥%7")
+QString Flight::showInfo() {
+    if (price == 0) {
+        return QString("");
+    }
+    return QString("%1 %2\n%3->%5\n%4->%6\n")
         .arg(airline)
         .arg(flightNumber)
         .arg(departureCity)
         .arg(departureTime)
         .arg(arrivalCity)
-        .arg(arrivalTime)
-        .arg(QString::number(price));
-
+        .arg(arrivalTime);
 }
 
-
-bool Flight::operator == (const Flight& other) const
-{
+bool Flight::operator == (const Flight& other) const {
   return airline == other.airline && flightNumber == other.flightNumber &&
          departureCity == other.departureCity &&
          departureTime == other.departureTime &&

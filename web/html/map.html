@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaflet 加载高德地图</title>
+    <link rel="stylesheet" href="../css/leaflet.css"/>
+    <script src="../js/leaflet.js"></script>
+    <script src="../js/leaflet_geodesic.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+    <script>
+        var map = L.map("map").setView([34.3416, 108.939], 4);
+        var layer = L.tileLayer('http://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
+            subdomains: ['1', '2', '3', '4'],
+            minZoom: 1,
+            maxZoom: 19
+        });
+        map.addLayer(layer);
+
+        // 存储当前所有的测地线
+        var geodesicLines = [];
+
+        // 定义一个清除所有测地线的函数
+        function clearGeodesicLines() {
+            geodesicLines.forEach(function(line) {
+                map.removeLayer(line); // 从地图上移除线
+            });
+            geodesicLines = []; // 清空数组
+        }
+
+        // 修改的 drawGeodesicLine 函数，在调用时先清除旧的测地线
+        function drawGeodesicLine(x1, y1, x2, y2, description) {
+            // 清除之前绘制的所有测地线
+            clearGeodesicLines();
+
+            // 创建新的测地线
+            const loc1 = new L.LatLng(x1, y1);
+            const loc2 = new L.LatLng(x2, y2);
+            const geodesic = new L.Geodesic([loc1, loc2]).addTo(map);
+
+            // 设置初始样式
+            geodesic.setStyle({ color: 'blue', weight: 2 }); // 初始颜色和粗细
+
+            // 添加鼠标悬停事件，显示描述信息并改变样式
+            geodesic.on('mouseover', function () {
+                geodesic.setStyle({ color: 'red', weight: 4 }); // 鼠标悬停时的颜色和粗细
+                L.popup()
+                    .setLatLng([(x1 + x2) / 2, (y1 + y2) / 2]) // 弹出框显示在两点中间
+                    .setContent(description) // 设置弹出框的内容
+                    .openOn(map); // 在地图上打开弹出框
+            });
+
+            // 添加鼠标移出事件，关闭弹出框并恢复样式
+            geodesic.on('mouseout', function () {
+                geodesic.setStyle({ color: 'blue', weight: 2 }); // 恢复原始颜色和粗细
+                map.closePopup(); // 关闭弹出框
+            });
+
+            // 将新绘制的测地线存储到数组中
+            geodesicLines.push(geodesic);
+        }
+
+        function drawGeodesicLineAll(x1, y1, x2, y2, description) {
+            // 创建新的测地线
+            const loc1 = new L.LatLng(x1, y1);
+            const loc2 = new L.LatLng(x2, y2);
+            const geodesic = new L.Geodesic([loc1, loc2]).addTo(map);
+
+            // 设置初始样式
+            geodesic.setStyle({ color: 'blue', weight: 2 }); // 初始颜色和粗细
+
+            // 添加鼠标悬停事件，显示描述信息并改变样式
+            geodesic.on('mouseover', function () {
+                geodesic.setStyle({ color: 'red', weight: 4 }); // 鼠标悬停时的颜色和粗细
+                L.popup()
+                    .setLatLng([(x1 + x2) / 2, (y1 + y2) / 2]) // 弹出框显示在两点中间
+                    .setContent(description) // 设置弹出框的内容
+                    .openOn(map); // 在地图上打开弹出框
+            });
+
+            // 添加鼠标移出事件，关闭弹出框并恢复样式
+            geodesic.on('mouseout', function () {
+                geodesic.setStyle({ color: 'blue', weight: 2 }); // 恢复原始颜色和粗细
+                map.closePopup(); // 关闭弹出框
+            });
+
+            // 将新绘制的测地线存储到数组中
+            geodesicLines.push(geodesic);
+        }
+    </script>
+</body>
+
+</html>

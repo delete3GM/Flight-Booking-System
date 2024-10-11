@@ -8,59 +8,47 @@ Order::Order(){}
 Order::Order(QString id, const User& user, const Flight& flt, QString st, OrderType tp, const Flight& flt2)
     : orderId(id), passenger(user), flight(flt), status(st),flight2(flt2),type(tp) {}
 
-// Getter 和 Setter 方法
-QString Order::getOrderId() const
-{
+QString Order::getOrderId() const {
     return orderId;
 }
 
-void Order::setOrderId(const QString& id)
-{
+void Order::setOrderId(const QString& id) {
     orderId = id;
 }
 
-const User& Order::getPassenger() const
-{
+const User& Order::getPassenger() const {
     return passenger;
 }
 
-void Order::setPassenger(const User& user)
-{
+void Order::setPassenger(const User& user) {
     passenger = user;
 }
 
-const Flight& Order::getFlight() const
-{
+const Flight& Order::getFlight() const {
     return flight;
 }
 
-void Order::setFlight(const Flight& flt)
-{
+void Order::setFlight(const Flight& flt) {
     flight = flt;
 }
 
-const Flight& Order::getFlight2() const
-{
+const Flight& Order::getFlight2() const {
     return flight2;
 }
 
-void Order::setFlight2(const Flight& flt)
-{
+void Order::setFlight2(const Flight& flt) {
     flight2 = flt;
 }
 
-QString Order::getStatus() const
-{
+QString Order::getStatus() const {
     return status;
 }
 
-void Order::setStatus(const QString& st)
-{
+void Order::setStatus(const QString& st) {
     status = st;
 }
 
-QString Order::toString() const
-{
+QString Order::toString() const {
     if(type == OrderType::DIRECT)
     {
         return QString("%1,%2,%3,%4,%5,%6,%7,%8,%9,%10,%11,%12,%13,%14,%15")
@@ -79,9 +67,7 @@ QString Order::toString() const
             .arg(flight.getPrice(), 0, 'f', 2)
             .arg(flight.getRemainSeatNum())
             .arg(status);
-    }
-    else
-    {
+    } else {
         return QString("%1,%2,%3,%4,%5,%6,%7,%8,%9,%10,%11,%12,%13,%14,%15,%16,%17,%18,%19,%20,%21,%22,%23")
             .arg(orderId)
             .arg(passenger.getFamilyName())
@@ -110,13 +96,11 @@ QString Order::toString() const
 }
 
 
-bool Order::operator==(const Order& other) const
-{
+bool Order::operator==(const Order& other) const {
     return orderId == other.orderId;
 }
 
-Order::OrderType Order::getType() const
-{
+Order::OrderType Order::getType() const {
     return type;
 }
 

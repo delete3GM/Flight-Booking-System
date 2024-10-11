@@ -22,7 +22,6 @@
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QRadioButton>
-#include <QtWidgets/QSpacerItem>
 #include <QtWidgets/QStackedWidget>
 #include <QtWidgets/QTabWidget>
 #include <QtWidgets/QTableWidget>
@@ -84,8 +83,6 @@ public:
     QLabel *flightInfo;
     QPushButton *cancelBtn;
     QWidget *mappage;
-    QGridLayout *gridLayout_2;
-    QSpacerItem *horizontalSpacer;
     QComboBox *airlineComb;
     QPushButton *backtoUser;
     QWebEngineView *webEngineView;
@@ -318,28 +315,16 @@ public:
         stackedWidget->addWidget(buyPage);
         mappage = new QWidget();
         mappage->setObjectName("mappage");
-        gridLayout_2 = new QGridLayout(mappage);
-        gridLayout_2->setObjectName("gridLayout_2");
-        horizontalSpacer = new QSpacerItem(200, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
-
-        gridLayout_2->addItem(horizontalSpacer, 0, 4, 1, 1);
-
         airlineComb = new QComboBox(mappage);
         airlineComb->setObjectName("airlineComb");
-
-        gridLayout_2->addWidget(airlineComb, 0, 0, 1, 2);
-
+        airlineComb->setGeometry(QRect(6, 6, 62, 22));
         backtoUser = new QPushButton(mappage);
         backtoUser->setObjectName("backtoUser");
-
-        gridLayout_2->addWidget(backtoUser, 0, 2, 1, 1);
-
+        backtoUser->setGeometry(QRect(72, 8, 80, 18));
         webEngineView = new QWebEngineView(mappage);
         webEngineView->setObjectName("webEngineView");
+        webEngineView->setGeometry(QRect(6, 32, 948, 502));
         webEngineView->setProperty("url", QVariant(QUrl(QString::fromUtf8("about:blank"))));
-
-        gridLayout_2->addWidget(webEngineView, 1, 0, 1, 5);
-
         stackedWidget->addWidget(mappage);
 
         gridLayout->addWidget(stackedWidget, 0, 0, 1, 1);
@@ -348,7 +333,7 @@ public:
 
         retranslateUi(Flight_Ticket_Management_System);
 
-        stackedWidget->setCurrentIndex(5);
+        stackedWidget->setCurrentIndex(6);
         Orders->setCurrentIndex(0);
 
 

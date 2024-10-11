@@ -6,12 +6,12 @@
 
 class Order {
 public:
-  enum class OrderType {
-    DIRECT,
-    TRANSFER,
-  };
+    enum class OrderType {
+        DIRECT,
+        TRANSFER,
+    };
 
-  static QString orderTypeToString(OrderType type);
+    static QString orderTypeToString(OrderType type);
 
 private:
     QString orderId;
@@ -47,7 +47,5 @@ public:
     bool operator == (const Order& other) const;
 
     OrderType getType() const;
-
-
 
 };

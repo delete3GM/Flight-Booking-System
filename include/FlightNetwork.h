@@ -6,7 +6,7 @@
 #include <QDebug>
 #include <QTextStream>
 #include "Flight.h"
-#include "Common.h"
+#include "Utils.h"
 #include "City.h"
 
 class FlightNetwork : public QObject
@@ -19,14 +19,15 @@ private:
 public:
     explicit FlightNetwork(QObject* parent = nullptr);
     ~FlightNetwork();
+    void clearData();
 
     QVector<City*> getCities()const;
     QVector<QString> getAllCityNames() const;
     void addCity(QString cityName);
     void addFlight(QString airline, QString flightNumber, QString departureCity, QString arrivalCity, QString departureTime,
                    QString arrivalTime, double price, int remainSeat);
-    void readData(const QString& file);
-    void writeDataToFile(const QString& filename);
+    void readFlightFromFile(const QString& file);
+    void writeFlightToFile(const QString& filename);
     QVector<Flight> searchFlights(QString departureCity, QString arrivalCity, QDate selectedDate);
     QVector<Flight> sortFlights(QVector<Flight> flights, SORT_TYPE sortType);
     QVector<QPair<Flight, Flight>> sortFlights(QVector<QPair<Flight, Flight>> flights, SORT_TYPE sortType);

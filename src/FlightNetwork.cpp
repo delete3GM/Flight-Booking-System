@@ -4,16 +4,14 @@
 
 FlightNetwork::FlightNetwork(QObject* parent) : QObject(parent) {}
 
-FlightNetwork::~FlightNetwork()
-{
+FlightNetwork::~FlightNetwork() {
     for (auto* city : cities) {
         delete city;
     }
     cities.clear();
 }
 
-void FlightNetwork::addCity(QString cityName)
-{
+void FlightNetwork::addCity(QString cityName) {
     for (auto* city : cities) {
         if (city->name == cityName) return;
     }
@@ -23,8 +21,7 @@ void FlightNetwork::addCity(QString cityName)
 }
 
 void FlightNetwork::addFlight(QString airline, QString flightNumber, QString departureCity, QString arrivalCity, QString departureTime,
-                              QString arrivalTime, double price, int remainSeat)
-{
+                              QString arrivalTime, double price, int remainSeat) {
     City* depCity = nullptr;
     for (auto* city : cities) {
         if (city->name == departureCity) {
@@ -32,15 +29,12 @@ void FlightNetwork::addFlight(QString airline, QString flightNumber, QString dep
             break;
         }
     }
-
     if (!depCity) {
         qWarning() << "Departure city not found:" << departureCity;
         return;
     }
-
     Flight* newFlight = new Flight(airline, flightNumber, departureCity, arrivalCity, departureTime, arrivalTime, price, remainSeat);
     FlightNode* newNode = new FlightNode(newFlight);
-
     if(depCity){
         if (!depCity->flights) {
             depCity->flights = newNode;
@@ -56,14 +50,11 @@ void FlightNetwork::addFlight(QString airline, QString flightNumber, QString dep
     }
 }
 
-QVector<City*> FlightNetwork::getCities() const
-{
+QVector<City*> FlightNetwork::getCities() const {
     return cities;
 }
 
-
-QVector<QString> FlightNetwork::getAllCityNames() const
-{
+QVector<QString> FlightNetwork::getAllCityNames() const {
     QVector<QString> cityNames;
     for (auto* city : cities) {
         cityNames.append(city->name);
@@ -71,16 +62,14 @@ QVector<QString> FlightNetwork::getAllCityNames() const
     return cityNames;
 }
 
-void FlightNetwork::readData(const QString& file)
-{
-    QTextStream* stream = LoadTextFile(file);
+void FlightNetwork::readFlightFromFile(const QString& file) {
+    QTextStream* stream = LoadFlightFile(file);
     if (!stream) {
         qInfo() << "Stream is null!";
         return;
     }
     //读取数据
-    while(!stream->atEnd())
-    {
+    while(!stream->atEnd()) {
         auto lineData = stream->readLine().split(", ", Qt::SkipEmptyParts);
 
         // 去除每个字段两端的空格
@@ -105,8 +94,7 @@ void FlightNetwork::readData(const QString& file)
     }
 }
 
-void FlightNetwork::writeDataToFile(const QString& filename)
-{
+void FlightNetwork::writeFlightToFile(const QString& filename) {
     QFile file(filename);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
         qWarning() << "Cannot open file for writing: " << filename;
@@ -131,8 +119,7 @@ void FlightNetwork::writeDataToFile(const QString& filename)
     file.close();
 }
 
-QVector<Flight> FlightNetwork::searchFlights(QString departureCity, QString arrivalCity, QDate selectedDate)
-{
+QVector<Flight> FlightNetwork::searchFlights(QString departureCity, QString arrivalCity, QDate selectedDate) {
     QVector<Flight> result;
     City* depCity = nullptr;
     for (auto* city : cities) {
@@ -154,12 +141,10 @@ QVector<Flight> FlightNetwork::searchFlights(QString departureCity, QString arri
     return result;
 }
 
-QVector<Flight> FlightNetwork::sortFlights(QVector<Flight> flights, SORT_TYPE sortType)
-{
+QVector<Flight> FlightNetwork::sortFlights(QVector<Flight> flights, SORT_TYPE sortType) {
     if (flights.isEmpty()){
         return flights;
     }
-
     switch (sortType) {
     case SORT_BY_PRICE:
         std::sort(flights.begin(), flights.end(), [](const Flight &a, const Flight &b) {
@@ -187,13 +172,10 @@ QVector<Flight> FlightNetwork::sortFlights(QVector<Flight> flights, SORT_TYPE so
     return flights;
 }
 
-
-
-QVector<QPair<Flight, Flight>> FlightNetwork::findTransferFlight(const QString &departureCity, const QString &arrivalCity, QDate selectedDate)
-{
+QVector<QPair<Flight, Flight>> FlightNetwork::findTransferFlight(const QString &departureCity, const QString &arrivalCity, QDate selectedDate) {
     // 从出发城市的航班中，依次查找到达城市的航班，查看是否有目的地城市的航班，加入到结果列表中
     QVector<QPair<Flight, Flight>> result;
-    // 获取当前城市
+    // 获取出发到达城市
     City *departureCityNode = nullptr;
     City *arrivalCityNode = nullptr;
     for (auto *city : cities) {
@@ -204,7 +186,6 @@ QVector<QPair<Flight, Flight>> FlightNetwork::findTransferFlight(const QString &
             arrivalCityNode = city;
         }
     }
-
     // 从 departureCityNode 的航班中查找到达城市的航班
     FlightNode *node = departureCityNode->flights;
     while (node) {
@@ -220,7 +201,6 @@ QVector<QPair<Flight, Flight>> FlightNetwork::findTransferFlight(const QString &
                 break;
             }
         }
-
         // 查看当前到达城市是否有飞往目的地的航班，并且起飞时间比落地时间晚
         if (currentArrivalCityNode && currentArrivalTime.date() == selectedDate) {
             FlightNode *transferNode = currentArrivalCityNode->flights;
@@ -241,12 +221,10 @@ QVector<QPair<Flight, Flight>> FlightNetwork::findTransferFlight(const QString &
     return result;
 }
 
-QVector<QPair<Flight, Flight>> FlightNetwork::sortFlights(QVector<QPair<Flight, Flight>> flights, SORT_TYPE sortType)
-{
+QVector<QPair<Flight, Flight>> FlightNetwork::sortFlights(QVector<QPair<Flight, Flight>> flights, SORT_TYPE sortType) {
     if (flights.isEmpty()) {
         return flights;
     }
-    
     switch (sortType) {
     case SORT_BY_PRICE:
         std::sort(flights.begin(), flights.end(),
@@ -276,4 +254,11 @@ QVector<QPair<Flight, Flight>> FlightNetwork::sortFlights(QVector<QPair<Flight, 
         break;
     }
     return flights;
+}
+
+
+void FlightNetwork::clearData() {
+    // 删除所有城市和相关的航班数据
+    qDeleteAll(cities);
+    cities.clear();
 }

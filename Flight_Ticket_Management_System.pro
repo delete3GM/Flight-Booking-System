@@ -11,36 +11,68 @@ CONFIG += c++17
 
 # 添加源文件路径
 SOURCES += \
-    loginwindow.cpp \
-    src/Common.cpp \
     src/Flight.cpp \
     src/FlightNetwork.cpp \
     src/Order.cpp \
     src/OrderManager.cpp \
     src/User.cpp \
+    src/Utils.cpp \
     src/main.cpp \
-    src/flight_ticket_management_system.cpp
+    src/flight_ticket_management_system.cpp \
+    src/pages/LoginPage.cpp \
+    src/pages/MenuPage.cpp \
+    src/pages/SearchPage.cpp \
+    src/pages/MapPage.cpp \
+    src/pages/UserPage.cpp \
+    src/pages/CheckoutPage.cpp \
+    src/pages/InfoPage.cpp
 
 # 添加头文件路径
 INCLUDEPATH += $$PWD/include
 
 HEADERS += \
     include/City.h \
-    include/Common.h \
     include/Flight.h \
     include/FlightNetwork.h \
     include/FlightNode.h \
     include/Order.h \
     include/OrderManager.h \
     include/User.h \
+    include/Utils.h \
     include/flight_ticket_management_system.h \
-    loginwindow.h
+    include/pages/LoginPage.h \
+    include/pages/MenuPage.h \
+    include/pages/SearchPage.h \
+    include/pages/MapPage.h \
+    include/pages/UserPage.h \
+    include/pages/CheckoutPage.h \
+    include/pages/InfoPage.h
 
 FORMS += \
-    flight_ticket_management_system.ui \
-    loginwindow.ui
+    ui/mappage.ui \
+    ui/checkoutpage.ui \
+    ui/infopage.ui \
+    ui/searchpage.ui \
+    ui/flight_ticket_management_system.ui \
+    ui/loginpage.ui \
+    ui/menupage.ui \
+    ui/userpage.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+DISTFILES += \
+    data/flight/flight_data.txt \
+    data/order/.txt \
+    data/order/1.txt \
+    data/order/1101.txt \
+    data/order/3.txt \
+    data/order/gh.txt \
+    web/css/leaflet.css \
+    web/html/map.html \
+    web/js/leaflet.js \
+    web/js/leaftlet_geodesic.js \
+    web/js/qwebchannel.js
+

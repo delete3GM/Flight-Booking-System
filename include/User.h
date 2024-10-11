@@ -6,8 +6,7 @@
 #include <QFile>
 #include "Flight.h"
 
-class User
-{
+class User {
 private:
     QString familyName;
     QString givenName;
