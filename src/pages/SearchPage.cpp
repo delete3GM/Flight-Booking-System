@@ -2,28 +2,22 @@
 #include <QEvent.h>
 #include "ui_searchpage.h"
 #include <QMessageBox>
+#include <QProcess>
+#include <QSocketNotifier>
 
 SearchPage::SearchPage(Flight_Ticket_Management_System *mainWindow, QWidget *parent)
     : QWidget(parent), ui(new Ui::SearchPage), mainWindow(mainWindow) {
     ui->setupUi(this);
-
     initSearchPage();
 
-    connect(ui->backBtn, SIGNAL(released()), this, SLOT(Back()));
-
-    connect(ui->showCalendarBtn, SIGNAL(released()), this, SLOT(showCalendar()));
     connect(ui->calendarWidget, SIGNAL(clicked(QDate)), this, SLOT(updateButtonWithDate(QDate)));
-
-    initializeDepBox();
     connect(ui->depBox,SIGNAL(currentIndexChanged(int)),this,SLOT(getDep(int)));
-    initializeArrBox();
     connect(ui->arrBox,SIGNAL(currentIndexChanged(int)),this,SLOT(getArr(int)));
 
+    connect(ui->backBtn, SIGNAL(released()), this, SLOT(Back()));
     connect(ui->exchangeBtn, SIGNAL(released()), this, SLOT(Exchange()));
-
-    connect(ui->searchBtn, SIGNAL(released()),this,SLOT(directSearch()));// 直飞的查询
-    connect(ui->searchTransBtn, SIGNAL(released()),this,SLOT(tranSearch()));// 加入转机操作的查询
-
+    connect(ui->searchBtn, SIGNAL(released()),this,SLOT(searchFlights()));
+    connect(ui->showCalendarBtn, SIGNAL(released()), this, SLOT(showCalendar()));
 }
 
 SearchPage::~SearchPage() {
@@ -33,37 +27,43 @@ SearchPage::~SearchPage() {
 void SearchPage::initSearchPage() {
     mainWindow->network.clearData();
     mainWindow->network.readFlightFromFile(FLIGHT_FILE);
-    //配置日历
-    ui->calendarWidget->setParent(this);
+    initializeDepBox();
+    initializeArrBox();
     ui->calendarWidget->hide();
-    // 根据内容填写出发地和目的地
-    connect(ui->userhintcomb, SIGNAL(currentIndexChanged(int)), this, SLOT(setUserHint(int)));
-    initHint();
 
+    connect(this, &SearchPage::pythonScriptOutputReceived, this, &SearchPage::updateDepWeather);
+    callPythonScript(mainWindow->depCity);
+
+    connect(this, &SearchPage::pythonScriptOutputReceived, this, &SearchPage::updateArrWeather);
+    callPythonScript(mainWindow->arrCity);
 }
 
-void SearchPage::directSearch() {
-    if (ui->showCalendarBtn->text().contains("选择出发日期")) {
-        QMessageBox::warning(this, "提示", "请选择出发日期");
-        return;
-    }
-    if(ui->depBox->currentIndex() == ui->arrBox->currentIndex()) {
-        QMessageBox::warning(this, "提示", "出发城市和到达城市相同");
-    }
-    searchFlights();
-    mainWindow->showInfoPage();
+void SearchPage::callPythonScript(const QString &city) {
+    QProcess *process = new QProcess(this);
+    QString program = "D:/CS/projects/Flight_Ticket_Management_System/scripts/weather.exe";
+    QStringList arguments;
+    arguments << city;
+
+    process->start(program, arguments);
+
+    connect(process, &QProcess::readyReadStandardOutput, this, [this, process]() {
+        QByteArray outputBytes = process->readAllStandardOutput();
+        QString output = QString::fromLocal8Bit(outputBytes);
+        qDebug() << "Output from Python executable:" << output;
+
+        emit pythonScriptOutputReceived(output);
+    });
+    connect(process, &QProcess::finished, this, [process]() {
+        process->deleteLater();
+    });
 }
 
-void SearchPage::tranSearch() {
-    if (ui->showCalendarBtn->text().contains("选择出发日期")) {
-        QMessageBox::warning(this, "提示", "请选择出发日期");
-        return;
-    }
-    if(ui->depBox->currentIndex() == ui->arrBox->currentIndex()) {
-        QMessageBox::warning(this, "提示", "出发城市和到达城市相同");
-    }
-    searchFlightsWithTransfers();
-    mainWindow->showInfoPage();
+void SearchPage::updateDepWeather(const QString &output) {
+    ui->depWeather->setText(output);
+}
+
+void SearchPage::updateArrWeather(const QString &output) {
+    ui->arrWeather->setText(output);
 }
 
 void SearchPage::Back() {
@@ -76,7 +76,7 @@ void SearchPage::initializeDepBox() {
         ui->depBox->addItem(cityName);
     }
     if (!cityNames.isEmpty()) {
-        ui->depBox->setCurrentIndex(0); // 默认选项
+        ui->depBox->setCurrentIndex(0);
     }
     mainWindow->depCity = ui->depBox->itemText(0);
 }
@@ -87,21 +87,22 @@ void SearchPage::initializeArrBox() {
         ui->arrBox->addItem(cityName);
     }
     if (!cityNames.isEmpty()) {
-        ui->arrBox->setCurrentIndex(0); // 默认选项
+        ui->arrBox->setCurrentIndex(0);
     }
     mainWindow->arrCity = ui->arrBox->itemText(0);
 }
+
 void SearchPage::showCalendar() {
     ui->calendarWidget->show();
-    ui->calendarWidget->setVerticalHeaderFormat(QCalendarWidget::NoVerticalHeader);  // 隐藏列标题
+    ui->calendarWidget->setVerticalHeaderFormat(QCalendarWidget::NoVerticalHeader);
     ui->calendarWidget->raise();
     ui->calendarWidget->activateWindow();
 }
 
 void SearchPage::updateButtonWithDate(const QDate &date) {
-    QString dateStr = date.toString("yyyy-MM-dd"); // 格式化日期
-    ui->showCalendarBtn->setText(dateStr); // 将日期设置为按钮的文本
-    ui->showCalendarBtn->show(); // 确保按钮是可见的
+    QString dateStr = date.toString("yyyy-MM-dd");
+    ui->showCalendarBtn->setText(dateStr);
+    ui->showCalendarBtn->show();
     qDebug()<<"出发日期："<<dateStr;
     mainWindow->selectedDate = date;
 }
@@ -110,54 +111,64 @@ void SearchPage::mousePressEvent(QMouseEvent *event) {
     if (!ui->calendarWidget->isHidden() && !ui->calendarWidget->geometry().contains(event->pos())) {
         ui->calendarWidget->hide();
     }
-    QWidget::mousePressEvent(event); // 调用基类的mousePressEvent
+    QWidget::mousePressEvent(event);
 }
 void SearchPage::getDep(int index) {
-    QString selectedOption = ui->depBox->itemText(index); // 获取选择的文本
+    QString selectedOption = ui->depBox->itemText(index);
     qDebug() << "Selected departure option:" << selectedOption;
     mainWindow->depCity = selectedOption;
+    QString cityName = mainWindow->depCity;
+    disconnect(this, &SearchPage::pythonScriptOutputReceived, this, &SearchPage::updateArrWeather);
+    connect(this, &SearchPage::pythonScriptOutputReceived, this, &SearchPage::updateDepWeather);
+
+    callPythonScript(cityName);
 }
 
 void SearchPage::getArr(int index) {
-    QString selectedOption = ui->arrBox->itemText(index); // 获取选择的文本
+    QString selectedOption = ui->arrBox->itemText(index);
     qDebug() << "Selected arrival option:" << selectedOption;
     mainWindow->arrCity = selectedOption;
+    QString cityName = mainWindow->arrCity;
+    disconnect(this, &SearchPage::pythonScriptOutputReceived, this, &SearchPage::updateDepWeather);
+    connect(this, &SearchPage::pythonScriptOutputReceived, this, &SearchPage::updateArrWeather);
+    callPythonScript(cityName);
 }
 
 void SearchPage::Exchange() {
+    disconnect(ui->depBox,SIGNAL(currentIndexChanged(int)),this,SLOT(getDep(int)));
+    disconnect(ui->arrBox,SIGNAL(currentIndexChanged(int)),this,SLOT(getArr(int)));
+
     int currentIndex = ui->depBox->currentIndex();
     ui->depBox->setCurrentIndex(ui->arrBox->currentIndex());
     ui->arrBox->setCurrentIndex(currentIndex);
     mainWindow->depCity = ui->depBox->itemText(ui->arrBox->currentIndex());
     mainWindow->arrCity = ui->arrBox->itemText(currentIndex);
+
+    QString tempWeather = ui->depWeather->text();
+    ui->depWeather->setText(ui->arrWeather->text());
+    ui->arrWeather->setText(tempWeather);
+
+    connect(ui->depBox,SIGNAL(currentIndexChanged(int)),this,SLOT(getDep(int)));
+    connect(ui->arrBox,SIGNAL(currentIndexChanged(int)),this,SLOT(getArr(int)));
 }
 
 void SearchPage::searchFlights() {
+    if(ui->depBox->currentIndex() == ui->arrBox->currentIndex()) {
+        QMessageBox::warning(this, "提示", "出发城市和到达城市相同");
+        return;
+    }
+    if (ui->showCalendarBtn->text().contains("选择出发日期")) {
+        QMessageBox::warning(this, "提示", "请选择出发日期");
+        return;
+    }
     QString depCity = mainWindow->depCity;
     QString arrCity = mainWindow->arrCity;
     QDate selectedDate = mainWindow->selectedDate;
     qDebug()<<depCity<<" "<<arrCity<<" "<<selectedDate;
-    QVector<Flight> flights = mainWindow->network.searchFlights(depCity, arrCity, selectedDate);
+    QVector<FlightRoute> flights = mainWindow->network.searchFlightsDFS(depCity, arrCity, selectedDate);
     qDebug() << "找到" << flights.size() << "个匹配的航程";
-    mainWindow->searchType = Flight_Ticket_Management_System::DIRECT;
     mainWindow->searchedFlights = flights;
-}
-
-void SearchPage::searchFlightsWithTransfers() {
-    QString depCity = mainWindow->depCity;
-    QString arrCity = mainWindow->arrCity;
-    QDate selectedDate = mainWindow->selectedDate;
-
-    QVector<QPair<Flight, Flight>> flights = mainWindow->network.findTransferFlight(depCity, arrCity, selectedDate);
-    QVector<Flight> directFlights;
-    for (auto flight : flights) {
-        directFlights.push_back(flight.first);
-        directFlights.push_back(flight.second);
-    }
-    mainWindow->searchType = Flight_Ticket_Management_System::TRANSFER;
-    // 更新表格显示
-    qDebug() << "找到" << flights.size() << "个匹配的航程";
-    mainWindow->searchedFlights = directFlights;
+    mainWindow->showInfoPage();
 }
 
 void SearchPage::loadCitiesIntoComboBox(QComboBox* comboBox, const QVector<QString>& cityNames) {
@@ -176,44 +187,4 @@ void SearchPage::setDataForReschedule(const QString& dep, const QString& arr, co
     ui->showCalendarBtn->setText("");
     ui->showCalendarBtn->setText(date.toString("yyyy-MM-dd"));
 }
-
-void SearchPage::setUserHint(int index) {
-    if(index < 0) {
-        return;
-    }
-    QString hint = ui->userhintcomb->itemText(index);
-    QStringList cityNames = hint.split("->");
-    ui->depBox->setCurrentText(cityNames[0]);
-    ui->arrBox->setCurrentText(cityNames[1]);
-}
-
-void SearchPage::initHint() {
-    ui->depBox->setCurrentIndex(0);
-    ui->arrBox->setCurrentIndex(0);
-    QDate today = QDate::currentDate();
-    ui->calendarWidget->setSelectedDate(today);
-    ui->showCalendarBtn->setText("选择出发日期");
-
-    // 根据用户的订单来给用户一些出发地和到达地的提示
-    QVector<QPair<QString, QString>> cityPairs;
-    for (auto order : mainWindow->orderManager.getOrders()) {
-        // 添加城市
-        QPair<QString, QString> cityPair;
-        cityPair.first = order.getFlight().getDepartureCity();
-        cityPair.second = order.getFlight().getArrivalCity();
-        if (!cityPairs.contains(cityPair)) {
-            cityPairs.push_back(cityPair);
-        }
-    }
-    ui->userhintcomb->clear();
-    // 在界面添加label
-    for (auto citypair : cityPairs) {
-        QString hint1 =citypair.first + "->" + citypair.second;
-        ui->userhintcomb->addItem(hint1);
-        QString hint2 =citypair.second + "->" + citypair.first;
-        ui->userhintcomb->addItem(hint2);
-    }
-}
-
-
 

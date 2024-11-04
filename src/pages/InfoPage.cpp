@@ -1,4 +1,5 @@
 #include "pages/InfoPage.h"
+#include "qboxlayout.h"
 #include "ui_infopage.h"
 #include <QMessageBox>
 
@@ -6,389 +7,216 @@ InfoPage::InfoPage(Flight_Ticket_Management_System *mainWindow, QWidget *parent)
     : QWidget(parent), ui(new Ui::InfoPage), mainWindow(mainWindow) {
     ui->setupUi(this);
 
-    //按条件排序
-    QButtonGroup *buttonGroup = new QButtonGroup(this);
-    buttonGroup->addButton(ui->default_sort, 1);
-    buttonGroup->addButton(ui->time_sort, 2);
-    buttonGroup->addButton(ui->early_sort, 3);
-    buttonGroup->addButton(ui->price_sort, 4);
-    ui->default_sort->setChecked(true);
-    buttonGroup->setExclusive(true);
-
-    connect(buttonGroup, SIGNAL(idClicked(int)), this, SLOT(updateSearch(int)));
+    initInfoPage();
     connect(ui->backBtn, SIGNAL(released()), this, SLOT(info2search()));
-
+    setupTreeWidget();
 }
 
 InfoPage::~InfoPage() {
     delete ui;
 }
 
-void InfoPage::info2search() {
-    mainWindow->showSearchPage();
-    ui->default_sort->setChecked(true);
+void InfoPage::setupTreeWidget() {
+    ui->flightTreeWidget->setSelectionMode(QAbstractItemView::SelectionMode::SingleSelection);
+    ui->flightTreeWidget->setColumnCount(5);
+    ui->flightTreeWidget->setHeaderLabels({"航班信息", "", "", "", ""});
+    ui->flightTreeWidget->setRootIsDecorated(false);
+    ui->flightTreeWidget->setStyleSheet(
+        "QTreeWidget::item { height: 30px; border-bottom: 1px solid lightgray; }"
+        "QTreeWidget::item:selected { background-color: lightblue; }"   // 选中时高亮
+        "QTreeWidget::item:hover { background-color: lightblue; }"
+        );
 }
 
-void InfoPage::handleTicketBooking(int rowIndex) {
-    if (mainWindow->searchType == Flight_Ticket_Management_System::DIRECT) {
-        QTableWidgetItem *item = ui->flightTableWidget->item(rowIndex, 1); // 假设航班号在第二列
-        QTableWidgetItem *departureCity = ui->flightTableWidget->item(rowIndex, 2); // 第三列为出发地
-        QTableWidgetItem *arrivalCity = ui->flightTableWidget->item(rowIndex, 3); // 第四列为目的地
-        if (item) {
-            QString flightNumber = item->text();
-            // 因为这里存在转机的情况，所以不能根据最终出发地和最终目的地来判断
-            QVector<Flight> currentFlights =
-                mainWindow->network.searchFlights(departureCity->text(), arrivalCity->text(), mainWindow->selectedDate);
+void InfoPage::initInfoPage() {
 
-            for (const Flight &flight : currentFlights) {
-                if (flight.getFlightNumber() == flightNumber) {
-                    mainWindow->selectedFlight = flight;
-                    qDebug() << mainWindow->selectedFlight.toString();
-                    break;
-                }
-            }
-            if (mainWindow->selectedFlight.getFlightNumber().isEmpty()) {
-                QMessageBox::warning(this, "错误", "未找到对应的航班信息！");
-                return;
-            }
-        }
-    } else {
-        QTableWidgetItem *item1 = ui->flightTableWidget->item(rowIndex, 1); // 假设航班号在第二列
-        QTableWidgetItem *departureCity1 = ui->flightTableWidget->item(rowIndex, 2); // 第三列为出发地
-        QTableWidgetItem *arrivalCity1 = ui->flightTableWidget->item(rowIndex, 3); // 第四列为目的地
+    originalFlights = mainWindow->searchedFlights;
+    filteredFlights = originalFlights;
+    ui->showCityLbl->setText(mainWindow->depCity+" ------------------> "+mainWindow->arrCity);
 
-        QTableWidgetItem *item2 = ui->flightTableWidget->item(rowIndex, 9); // 假设航班号在第二列
-        QTableWidgetItem *departureCity2 = ui->flightTableWidget->item(rowIndex, 10); // 第三列为出发地
-        QTableWidgetItem *arrivalCity2 = ui->flightTableWidget->item(rowIndex, 11); // 第四列为目的地
+    QButtonGroup *buttonGroup1 = new QButtonGroup(this);
+    buttonGroup1->addButton(ui->time_sort, 1);
+    buttonGroup1->addButton(ui->early_sort, 2);
+    buttonGroup1->addButton(ui->price_sort, 3);
+    buttonGroup1->setExclusive(true);
+    connect(buttonGroup1, &QButtonGroup::idClicked, this, &InfoPage::handleSortButtonClick);
 
-        if (item1 && item2) {
-            QString flightNumber1 = item1->text();
-            QString flightNumber2 = item2->text();
-            // 因为这里存在转机的情况，所以不能根据最终出发地和最终目的地来判断
-            QVector<Flight> currentFlights1 =
-                mainWindow->network.searchFlights(departureCity1->text(), arrivalCity1->text(), mainWindow->selectedDate);
+    ui->checkBox1->setChecked(true);
+    ui->checkBox2->setChecked(true);
+    ui->checkBox3->setChecked(true);
+    connect(ui->checkBox1, &QCheckBox::stateChanged, this, &InfoPage::applyFilters);
+    connect(ui->checkBox2, &QCheckBox::stateChanged, this, &InfoPage::applyFilters);
+    connect(ui->checkBox3, &QCheckBox::stateChanged, this, &InfoPage::applyFilters);
 
-            for (const Flight &flight : currentFlights1) {
-                if (flight.getFlightNumber() == flightNumber1 ) {
-                    mainWindow->selectedFlight = flight;
-                    qDebug() << mainWindow->selectedFlight.toString();
-                    break;
-                }
-            }
-            QVector<Flight> currentFlights2 =
-                mainWindow->network.searchFlights(departureCity2->text(), arrivalCity2->text(), mainWindow->selectedDate);
+    initAirlineArea();
+}
 
-            for (const Flight &flight : currentFlights2) {
-                if (flight.getFlightNumber() == flightNumber2 ) {
-                    mainWindow->selectedFlight2 = flight;
-                    qDebug() << mainWindow->selectedFlight2.toString();
-                    break;
-                }
-            }
-            if (mainWindow->selectedFlight.getFlightNumber().isEmpty() || mainWindow->selectedFlight2.getFlightNumber().isEmpty()) {
-                QMessageBox::warning(this, "错误", "未找到对应的航班信息！");
-                return;
+void InfoPage::info2search() {
+    currentSortType = SORT_NORMAL;
+    mainWindow->showSearchPage();
+}
+
+void InfoPage::initAirlineArea() {
+    for (int i = 0; i < mainWindow->searchedFlights.size(); ++i) {
+        for (int j = 0; j < mainWindow->searchedFlights[i].getFlightCount(); ++j) {
+            if (mainWindow->searchedFlights[i][j] != nullptr) {
+                Airlines.insert(mainWindow->searchedFlights[i][j]->getAirline());
             }
         }
     }
+    QVBoxLayout *layout = new QVBoxLayout(ui->scrollAreaWidgetContents);
+    ui->airlineArea->setWidgetResizable(true);
+    //ui->airlineArea->setFrameShape(QFrame::NoFrame);
+    foreach (const QString &text, Airlines) {
+        QCheckBox *checkBox = new QCheckBox(text);
+        checkBox->setChecked(true);
+        layout->addWidget(checkBox);
+        connect(checkBox, &QCheckBox::stateChanged, this, &InfoPage::applyFilters);
+    }
+    ui->scrollAreaWidgetContents->setLayout(layout);
+}
+
+void InfoPage::displayFlights(QVector<FlightRoute>& flights) {
+    ui->flightTreeWidget->setUpdatesEnabled(false);
+    ui->flightTreeWidget->clear();
+    int row = 0;
+    for (auto& flightPath : flights) {
+        QTreeWidgetItem *item = new QTreeWidgetItem(ui->flightTreeWidget);
+        addFlightPathToTree(item, flightPath, row);
+        row++;
+    }
+    ui->flightTreeWidget->resizeColumnToContents(0);
+    ui->flightTreeWidget->setUpdatesEnabled(true);
+}
+
+// void InfoPage::addFlightPathToTree(QTreeWidgetItem* item, FlightRoute& flightPath, const int row) {
+//     QString cities;
+//     cities.append(flightPath.first()->getDepartureCity());
+//     for (int i = 0; i < flightPath.getTransferCount(); ++i) {
+//         cities.append(" -> " + flightPath[i]->getArrivalCity());
+//     }
+//     cities.append(" -> " + flightPath.last()->getArrivalCity());
+//     QString sumPrice = "￥ " + QString::number(flightPath.getTotalPrice()) + " 起";
+
+//     item->setText(0, cities);
+//     item->setText(4, sumPrice);
+
+//     QWidget *buttonWidget = new QWidget();
+//     QHBoxLayout *buttonLayout = new QHBoxLayout(buttonWidget);
+//     buttonLayout->setContentsMargins(0, 0, 0, 0);  // 移除边距
+//     QPushButton* bookButton = new QPushButton("订票");
+//     bookButton->setFixedSize(60, 20);
+//     buttonLayout->addStretch();
+//     buttonLayout->addWidget(bookButton);
+//     bookButton->setProperty("rowIndex", row);
+//     ui->flightTreeWidget->setItemWidget(item, 4, buttonWidget);
+//     connect(bookButton, &QPushButton::clicked, this, [this, row]() {
+//         handleBookButtonClick(row);
+//     });
+
+//     for (auto& flight : flightPath) {
+//         QTreeWidgetItem *childItem = new QTreeWidgetItem(item);
+//         childItem->setText(0, flight->getAirline() + " " + flight->getFlightNumber());
+//         childItem->setText(1, flight->getDepartureTime());
+//         childItem->setText(2, flight->getArrivalTime());
+//         childItem->setText(4, "￥ " + QString::number(flight->getPrice()));
+//     }
+// }
+
+void InfoPage::addFlightPathToTree(QTreeWidgetItem* item, FlightRoute& flightPath, const int row) {
+    QString cities;
+    cities.append(flightPath.first()->getDepartureCity());
+    for (int i = 0; i < flightPath.getTransferCount(); ++i) {
+        cities.append(" -> " + flightPath[i]->getArrivalCity());
+    }
+    cities.append(" -> " + flightPath.last()->getArrivalCity());
+    QString sumPrice = "￥ " + QString::number(flightPath.getTotalPrice()) + " 起";
+
+    item->setText(0, cities);
+    item->setText(4, sumPrice);
+
+    QWidget *buttonWidget = new QWidget();
+    QHBoxLayout *buttonLayout = new QHBoxLayout(buttonWidget);
+    buttonLayout->setContentsMargins(0, 0, 0, 0);  // 移除边距
+    QPushButton* bookButton = new QPushButton("订票");
+    bookButton->setFixedSize(60, 20);
+    buttonLayout->addStretch();
+    buttonLayout->addWidget(bookButton);
+    bookButton->setProperty("rowIndex", row);
+    ui->flightTreeWidget->setItemWidget(item, 4, buttonWidget);
+    connect(bookButton, &QPushButton::clicked, this, [this, row]() {
+        handleBookButtonClick(row);
+    });
+
+    for (auto& flight : flightPath) {
+        QTreeWidgetItem *childItem = new QTreeWidgetItem(item);
+        childItem->setText(0, flight->getAirline() + " " + flight->getFlightNumber());
+        childItem->setText(1, flight->getDepartureTime());
+        childItem->setText(2, flight->getArrivalTime());
+        childItem->setText(4, "￥ " + QString::number(flight->getPrice()));
+    }
+}
+
+void InfoPage::handleBookButtonClick(int row) {
+    mainWindow->selectedFlight = filteredFlights[row];
     mainWindow->showCheckoutPage();
 }
-void InfoPage::updateTableWidget(const QVector<Flight> &flights) {
-    // 如果是直飞
-    if (mainWindow->searchType == Flight_Ticket_Management_System::DIRECT) {
-        QTableWidget *tableWidget = ui->flightTableWidget;
-        tableWidget->clearContents();
-        tableWidget->setRowCount(0);
 
-        // 表头
-        QStringList headers{"航空公司", "航班号",   "出发城市",
-                            "到达城市", "出发时间", "到达时间",
-                            "票价",     "余票",     ""};
-        tableWidget->setColumnCount(headers.size());
-        tableWidget->setHorizontalHeaderLabels(headers);
-
-        // 设置拉伸模式
-        QHeaderView *horizontalHeader = tableWidget->horizontalHeader();
-        horizontalHeader->setSectionResizeMode(QHeaderView::Stretch);
-
-        // 隐藏行标签
-        tableWidget->verticalHeader()->setVisible(false);
-
-        if (flights.isEmpty()) {
-            QMessageBox::information(this, "搜索结果", "没有找到符合条件的航班。");
-            info2search();
-
-        } else {
-            // 设置水平和垂直居中 填入数据行
-            for (int row = 0; row < flights.size(); row++) {
-                const Flight &flight = flights[row];
-                tableWidget->insertRow(row);
-                QTableWidgetItem *item;
-
-                item = new QTableWidgetItem(flight.getAirline());
-                item->setTextAlignment(Qt::AlignCenter);
-                tableWidget->setItem(row, 0, item);
-
-                item = new QTableWidgetItem(flight.getFlightNumber());
-                item->setTextAlignment(Qt::AlignCenter);
-                tableWidget->setItem(row, 1, item);
-
-                item = new QTableWidgetItem(flight.getDepartureCity());
-                item->setTextAlignment(Qt::AlignCenter);
-                tableWidget->setItem(row, 2, item);
-
-                item = new QTableWidgetItem(flight.getArrivalCity());
-                item->setTextAlignment(Qt::AlignCenter);
-                tableWidget->setItem(row, 3, item);
-
-                item = new QTableWidgetItem(flight.getDepartureTime());
-                item->setTextAlignment(Qt::AlignCenter);
-                tableWidget->setItem(row, 4, item);
-
-                item = new QTableWidgetItem(flight.getArrivalTime());
-                item->setTextAlignment(Qt::AlignCenter);
-                tableWidget->setItem(row, 5, item);
-
-                item = new QTableWidgetItem(QString::number(flight.getPrice(), 'f', 2));
-                item->setTextAlignment(Qt::AlignCenter);
-                tableWidget->setItem(row, 6, item);
-
-                item = new QTableWidgetItem(QString::number(flight.getRemainSeatNum()));
-                item->setTextAlignment(Qt::AlignCenter);
-                tableWidget->setItem(row, 7, item);
-
-                if (flight.getRemainSeatNum() > 0) {
-                    QPushButton *buy_button = new QPushButton("订票");
-                    buy_button->setProperty("rowIndex", row); // 设置属性来存储行索引
-                    connect(buy_button, &QPushButton::clicked, this, [this, row]() {
-                        handleTicketBooking(row);
-                    });
-                    tableWidget->setCellWidget(row, 8, buy_button);
-                } else {
-                    QLabel *no_ticket = new QLabel("无票");
-                    no_ticket->setAlignment(Qt::AlignCenter);
-                    tableWidget->setCellWidget(row, 8, no_ticket);
-                }
-            }
-
-            // 对于文本较多的列单独设置为 Stretch 模式
-            horizontalHeader->setSectionResizeMode(4, QHeaderView::Stretch);
-            horizontalHeader->setSectionResizeMode(5, QHeaderView::Stretch);
-
-            // 对于文本较少的列单独设置为 ResizeToContents 模式
-            horizontalHeader->setSectionResizeMode(1, QHeaderView::ResizeToContents);
-            horizontalHeader->setSectionResizeMode(2, QHeaderView::ResizeToContents);
-            horizontalHeader->setSectionResizeMode(3, QHeaderView::ResizeToContents);
-            horizontalHeader->setSectionResizeMode(7, QHeaderView::ResizeToContents);
-        }
-    } else {
-        // 如果是转机，那么将第一趟和第二趟航班显示在一行，但是订票按钮只显示一个
-        QTableWidget *tableWidget = ui->flightTableWidget;
-        tableWidget->clearContents();
-        tableWidget->setRowCount(0);
-
-        // 表头
-        QStringList headers{
-                            "航空公司", "航班号",   "出发城市", "到达城市", "出发时间", "到达时间",
-                            "票价",     "余票",     "航空公司", "航班号",   "出发城市", "到达城市",
-                            "出发时间", "到达时间", "票价",     "余票",     ""};
-        tableWidget->setColumnCount(headers.size());
-        tableWidget->setHorizontalHeaderLabels(headers);
-
-        // 设置拉伸模式
-        QHeaderView *horizontalHeader = tableWidget->horizontalHeader();
-        horizontalHeader->setSectionResizeMode(QHeaderView::Stretch);
-
-        // 隐藏行标签
-        tableWidget->verticalHeader()->setVisible(false);
-
-        if (flights.isEmpty()) {
-            QMessageBox::information(this, "搜索结果", "没有找到符合条件的航班。");
-            info2search();
-
-        } else {
-            // 设置水平和垂直居中 填入数据行
-            for (int row = 0; row < flights.size(); row += 2) {
-                const Flight &flight1 = flights[row];
-                const Flight &flight2 = flights[row + 1];
-                tableWidget->insertRow(row/2);
-                QTableWidgetItem *item;
-
-                item = new QTableWidgetItem(flight1.getAirline());
-                item->setTextAlignment(Qt::AlignCenter);
-                tableWidget->setItem(row/2, 0, item);
-
-                item = new QTableWidgetItem(flight1.getFlightNumber());
-                item->setTextAlignment(Qt::AlignCenter);
-                tableWidget->setItem(row/2, 1, item);
-
-                item = new QTableWidgetItem(flight1.getDepartureCity());
-                item->setTextAlignment(Qt::AlignCenter);
-                tableWidget->setItem(row/2, 2, item);
-
-                item = new QTableWidgetItem(flight1.getArrivalCity());
-                item->setTextAlignment(Qt::AlignCenter);
-                tableWidget->setItem(row/2, 3, item);
-
-                item = new QTableWidgetItem(flight1.getDepartureTime());
-                item->setTextAlignment(Qt::AlignCenter);
-                tableWidget->setItem(row/2, 4, item);
-
-                item = new QTableWidgetItem(flight1.getArrivalTime());
-                item->setTextAlignment(Qt::AlignCenter);
-                tableWidget->setItem(row/2, 5, item);
-
-                item = new QTableWidgetItem(QString::number(flight1.getPrice(), 'f', 2));
-                item->setTextAlignment(Qt::AlignCenter);
-                tableWidget->setItem(row/2, 6, item);
-
-                item = new QTableWidgetItem(QString::number(flight1.getRemainSeatNum()));
-                item->setTextAlignment(Qt::AlignCenter);
-                tableWidget->setItem(row/2, 7, item);
-
-                item = new QTableWidgetItem(flight2.getAirline());
-                item->setTextAlignment(Qt::AlignCenter);
-                tableWidget->setItem(row/2, 8, item);
-
-                item = new QTableWidgetItem(flight2.getFlightNumber());
-                item->setTextAlignment(Qt::AlignCenter);
-                tableWidget->setItem(row/2, 9, item);
-
-                item = new QTableWidgetItem(flight2.getDepartureCity());
-                item->setTextAlignment(Qt::AlignCenter);
-                tableWidget->setItem(row/2, 10, item);
-
-                item = new QTableWidgetItem(flight2.getArrivalCity());
-                item->setTextAlignment(Qt::AlignCenter);
-                tableWidget->setItem(row/2, 11, item);
-
-                item = new QTableWidgetItem(flight2.getDepartureTime());
-                item->setTextAlignment(Qt::AlignCenter);
-                tableWidget->setItem(row/2, 12, item);
-
-                item = new QTableWidgetItem(flight2.getArrivalTime());
-                item->setTextAlignment(Qt::AlignCenter);
-                tableWidget->setItem(row/2, 13, item);
-
-                item = new QTableWidgetItem(QString::number(flight2.getPrice(), 'f', 2));
-                item->setTextAlignment(Qt::AlignCenter);
-                tableWidget->setItem(row/2, 14, item);
-
-                item = new QTableWidgetItem(QString::number(flight2.getRemainSeatNum()));
-                item->setTextAlignment(Qt::AlignCenter);
-                tableWidget->setItem(row/2, 15, item);
-
-                if (flight1.getRemainSeatNum() > 0 && flight2.getRemainSeatNum() > 0) {
-                    QPushButton *buy_button = new QPushButton("订票");
-                    buy_button->setProperty("rowIndex", row); // 设置属性来存储行索引
-                    connect(buy_button, &QPushButton::clicked, this, [this, row]() {
-                        handleTicketBooking(row);
-                    });
-                    tableWidget->setCellWidget(row/2, 16, buy_button);
-                } else {
-                    QLabel *no_ticket = new QLabel("无票");
-                    no_ticket->setAlignment(Qt::AlignCenter);
-                    tableWidget->setCellWidget(row/2, 16, no_ticket);
-                }
-            }
-
-            // 对于文本较多的列单独设置为 Stretch 模式
-            horizontalHeader->setSectionResizeMode(4, QHeaderView::Stretch);
-            horizontalHeader->setSectionResizeMode(5, QHeaderView::Stretch);
-
-            // 对于文本较少的列单独设置为 ResizeToContents 模式
-            horizontalHeader->setSectionResizeMode(1, QHeaderView::ResizeToContents);
-            horizontalHeader->setSectionResizeMode(2, QHeaderView::ResizeToContents);
-            horizontalHeader->setSectionResizeMode(3, QHeaderView::ResizeToContents);
-            horizontalHeader->setSectionResizeMode(7, QHeaderView::ResizeToContents);
-        }
-    }
-}
-
-void InfoPage::updateSearch(int buttonId) {
-    // 获取SearchPage的数据
-    QString depCity = mainWindow->depCity;
-    QString arrCity = mainWindow->arrCity;
-    QDate selectedDate = mainWindow->selectedDate;
-
-  if(mainWindow->searchType == Flight_Ticket_Management_System::DIRECT)
-  {
-    // 搜索航班
-    QVector<Flight> flights =
-        mainWindow->network.searchFlights(depCity, arrCity, selectedDate);
-
-    // 根据选中的按钮设置排序类型
-    SORT_TYPE sortType = SORT_NORMAL;
+void InfoPage::handleSortButtonClick(int buttonId) {
     switch (buttonId) {
-    case 1: // 默认排序
-        sortType = SORT_NORMAL;
-        qDebug() << "Sorting by normal";
+    case 1:
+        currentSortType = SORT_BY_DURA;
         break;
-    case 2: // 按时长排序
-        sortType = SORT_BY_DURA;
-        qDebug() << "Sorting by dura";
+    case 2:
+        currentSortType = SORT_BY_TIME;
         break;
-    case 3: // 按最早排序
-        sortType = SORT_BY_TIME;
-        qDebug() << "Sorting by time";
-        break;
-    case 4: // 按价格排序
-        sortType = SORT_BY_PRICE;
-        qDebug() << "Sorting by price";
+    case 3:
+        currentSortType = SORT_BY_PRICE;
         break;
     default:
-        qDebug() << "Unknown button ID";
         return;
     }
-
-    if (sortType != SORT_NORMAL) {
-        flights = mainWindow->network.sortFlights(flights, sortType);
+    if (currentSortType != SORT_NORMAL) {
+        filteredFlights = mainWindow->network.sortFlights(filteredFlights, currentSortType);
     }
-    // 更新表格显示
-    updateTableWidget(flights);
-  }
-  else if(mainWindow->searchType == Flight_Ticket_Management_System::TRANSFER) {
-    QVector<QPair<Flight, Flight>> flights = mainWindow->network.findTransferFlight(depCity, arrCity, selectedDate);
-    // 排序
-    // 根据选中的按钮设置排序类型
-    SORT_TYPE sortType = SORT_NORMAL;
-    switch (buttonId) {
-    case 1: // 默认排序
-        sortType = SORT_NORMAL;
-        qDebug() << "Sorting by normal";
-        break;
-    case 2: // 按时长排序
-        sortType = SORT_BY_DURA;
-        qDebug() << "Sorting by dura";
-        break;
-    case 3: // 按最早排序
-        sortType = SORT_BY_TIME;
-        qDebug() << "Sorting by time";
-        break;
-    case 4: // 按价格排序
-        sortType = SORT_BY_PRICE;
-        qDebug() << "Sorting by price";
-        break;
-    default:
-        qDebug() << "Unknown button ID";
-        return;
-    }
-
-    if (sortType != SORT_NORMAL) {
-        flights = mainWindow->network.sortFlights(flights, sortType);
-    }
-    // 这里将 pair 转换为两个对象进行存储
-    QVector<Flight> directFlights;
-    for (auto flight : flights) {
-      directFlights.push_back(flight.first);
-      directFlights.push_back(flight.second);
-    }
-    qDebug() << "Search results count:" << flights.size();
-    mainWindow->searchType = Flight_Ticket_Management_System::TRANSFER;
-    updateTableWidget(directFlights);
-  }
+    displayFlights(filteredFlights);
 }
 
-
+void InfoPage::applyFilters() {
+    filteredFlights.clear();
+    for (auto& flightPath : originalFlights) {
+        bool isValid = true;
+        int stopNum = flightPath.getTransferCount();
+        if ((stopNum == 0 && !ui->checkBox1->isChecked()) ||
+            (stopNum == 1 && !ui->checkBox2->isChecked()) ||
+            (stopNum >= 2 && !ui->checkBox3->isChecked())) {
+            isValid = false;
+        }
+        if (isValid) {
+            for (auto& flight : flightPath) {
+                bool airlineChecked = false;
+                QLayout* layout = ui->scrollAreaWidgetContents->layout();
+                for (int i = 0; i < layout->count(); ++i) {
+                    QCheckBox* checkbox = qobject_cast<QCheckBox*>(layout->itemAt(i)->widget());
+                    if (checkbox && checkbox->text() == flight->getAirline()) {
+                        airlineChecked = checkbox->isChecked();
+                        break;
+                    }
+                }
+                if (!airlineChecked) {
+                    isValid = false;
+                    break;
+                }
+            }
+        }
+        if (isValid) {
+            filteredFlights.append(flightPath);
+        }
+    }
+    if (currentSortType != SORT_NORMAL) {
+        filteredFlights = mainWindow->network.sortFlights(filteredFlights, currentSortType);
+    }
+    displayFlights(filteredFlights);
+}
 
 

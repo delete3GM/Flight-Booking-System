@@ -1,52 +1,56 @@
-#include "User.h"
+#include "Passenger.h"
 
 
-User::User() : familyName(""), givenName(""), sex(""), id(""), phone("") {}
+Passenger::Passenger() {}
 
-User::User(QString f, QString g, QString s, QString i, QString p)
+Passenger::Passenger(QString f, QString g, QString s, QString i, QString p)
     : familyName(f), givenName(g), sex(s), id(i), phone(p) {}
 
-QString User::getFamilyName() const {
+QString Passenger::getFamilyName() const {
     return familyName;
 }
 
-QString User::getGivenName() const {
+QString Passenger::getGivenName() const {
     return givenName;
 }
 
-QString User::getSex() const {
+QString Passenger::getSex() const {
     return sex;
 }
 
-QString User::getId() const {
+QString Passenger::getId() const {
     return id;
 }
 
-QString User::getPhone() const {
+QString Passenger::getPhone() const {
     return phone;
 }
 
-void User::setFamilyName(const QString &f) {
+void Passenger::setFamilyName(const QString &f) {
     familyName = f;
 }
 
-void User::setGivenName(const QString &g) {
+void Passenger::setGivenName(const QString &g) {
     givenName = g;
 }
 
-void User::setSex(const QString &s) {
+void Passenger::setSex(const QString &s) {
     sex = s;
 }
 
-void User::setId(const QString &i) {
+void Passenger::setId(const QString &i) {
     id = i;
 }
 
-void User::setPhone(const QString &p) {
+void Passenger::setPhone(const QString &p) {
     phone = p;
 }
 
-QString User::toString() const {
+QString Passenger::toString() const {
     return "Family Name: " + familyName + ", Given Name: " + givenName + ", Sex: " + sex + ", ID: " + id + ", Phone: " + phone;
+}
+
+bool Passenger::operator==(const Passenger &other) const {
+    return this->getId() == other.getId();
 }
 

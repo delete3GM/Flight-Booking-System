@@ -3,6 +3,9 @@
 #include <QFile>
 #include <QTextStream>
 #include <QDebug>
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <QJsonObject>
 
 QList<Order>& OrderManager::getOrders() {
     return this->orders;
@@ -18,64 +21,74 @@ void OrderManager::modifyOrder(int index, const Order& newOrder) {
     }
 }
 
-bool OrderManager::saveOrdersToFile(const QString& filePath) {
+bool OrderManager::saveOrdersToJsonFile(const QString& filePath) {
     QFile file(filePath);
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate |QIODevice::Text)) {
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
         qWarning() << "Cannot open file for writing: " << filePath;
         return false;
     }
-    QTextStream out(&file);
+    QJsonArray ordersArray;
     for (const Order& order : orders) {
-        out << order.toString() << "\n";
+        ordersArray.append(order.toJsonObject());
     }
+    QJsonDocument doc(ordersArray);
+    file.write(doc.toJson(QJsonDocument::Indented));
     file.close();
     return true;
 }
 
-void OrderManager::loadOrdersFromFile(const QString& filePath) {
-    //从文件中逐行读取订单，并加载到orders中
+void OrderManager::loadOrdersFromJsonFile(const QString& filePath) {
     QFile file(filePath);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         qWarning() << "Cannot open file for reading: " << filePath;
         return;
     }
     QTextStream in(&file);
-    while (!in.atEnd()) {
-        QString line = in.readLine();
-        QStringList fields = line.split(",");
-        if (fields.size() == 15) {
-            User user(fields[1], fields[2], fields[3], fields[4], fields[5]);
-            Flight flight(fields[6], fields[7], fields[8], fields[9], fields[10], fields[11], fields[12].toDouble(), fields[13].toInt());
-            Order order(fields[0], user, flight, fields[14]);
-            // 检查订单是否已存在
-            bool exists = false;
-            for (const Order& existingOrder : orders) {
-                if (existingOrder.getOrderId() == order.getOrderId()) {
-                    exists = true;
-                    break;
-                }
-            }
-            if (!exists) {
-                orders.append(order);
+    QString jsonText = in.readAll();
+    file.close();
+
+    QJsonDocument doc = QJsonDocument::fromJson(jsonText.toUtf8());
+    if (doc.isNull()) {
+        qWarning() << "Failed to parse JSON";
+        return;
+    }
+    QJsonArray ordersArray = doc.array();
+    qDebug() << "Number of orders:" << ordersArray.size();
+    for (const QJsonValue &value : ordersArray) {
+        QJsonObject obj = value.toObject();
+
+        QString orderId = obj["orderId"].toString();
+        Passenger passenger(obj["passenger"].toObject()["familyName"].toString(),
+                            obj["passenger"].toObject()["givenName"].toString(),
+                            obj["passenger"].toObject()["sex"].toString(),
+                            obj["passenger"].toObject()["id"].toString(),
+                            obj["passenger"].toObject()["phone"].toString());
+
+        QVector<Flight> flights;
+        QJsonArray flightsArray = obj["flightRoute"].toArray();
+        for (const QJsonValue &flightValue : flightsArray) {
+            QJsonObject flightObj = flightValue.toObject();
+            Flight flight(flightObj["airline"].toString(), flightObj["flightNumber"].toString(),
+                          flightObj["departureCity"].toString(), flightObj["departureTime"].toString(),
+                          flightObj["arrivalCity"].toString(), flightObj["arrivalTime"].toString(),
+                          flightObj["price"].toDouble(), flightObj["remainSeatNum"].toInt());
+            flights.append(flight);
+        }
+
+        QString status = obj["status"].toString();
+        FlightRoute flightRoute(flights);
+        Order order(orderId, passenger, flightRoute, status);
+
+        bool exists = false;
+        for (const Order& existingOrder : orders) {
+            if (existingOrder.getOrderId() == order.getOrderId()) {
+                exists = true;
+                break;
             }
         }
-        else if(fields.size()==23) {
-            User user(fields[1], fields[2], fields[3], fields[4], fields[5]);
-            Flight flight1(fields[6], fields[7], fields[8], fields[9], fields[10], fields[11], fields[12].toDouble(), fields[13].toInt());
-            Flight flight2(fields[14], fields[15], fields[16], fields[17], fields[18], fields[19], fields[20].toDouble(), fields[21].toInt());
-            Order order(fields[0], user, flight1, fields[22], Order::OrderType::TRANSFER, flight2);
-            // 检查订单是否已存在
-            bool exists = false;
-            for (const Order& existingOrder : orders) {
-                if (existingOrder.getOrderId() == order.getOrderId()) {
-                    exists = true;
-                    break;
-                }
-            }
-            if (!exists) {
-                orders.append(order);
-            }
+        if (!exists) {
+            orders.append(order);
         }
     }
-    file.close();
 }
+

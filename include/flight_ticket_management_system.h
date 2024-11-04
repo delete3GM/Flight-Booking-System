@@ -7,6 +7,7 @@
 #include <QTextStream>
 #include "FlightNetwork.h"
 #include "OrderManager.h"
+#include "FlightRoute.h"
 #include <QButtonGroup>
 #include <QAbstractButton>
 #include <QCalendarWidget>
@@ -40,12 +41,13 @@ public:
     enum ORDER_TYPE {
         NONE,
         NEW_ORDER,
-        RESCHEDULE_ORDER
+        RESCHEDULE_ORDER,
+        CANCELED_ORDER
     };
 
-    enum SEARCH_TYPE{
-        DIRECT,
-        TRANSFER
+    enum MAP_TYPE{
+        DOMESTIC,
+        GLOBAL
     };
 
 public:
@@ -56,20 +58,19 @@ public:
 
 
 public:
-    QString currentId; //当前用户身份证号
+    QString currentUserId; //当前用户身份证号
     FlightNetwork network; //当前航线图
-    Flight selectedFlight; //当前选择航班
-    Flight selectedFlight2; //当前选择航班
-    OrderManager orderManager; //管理所有订单
-    ORDER_TYPE orderType; //当前订单类型
+    FlightRoute selectedFlight; //当前选择航班
+    OrderManager orderManager; //管理所有订单2
     Order rescheduleOrder; //要改签的订单
-    SEARCH_TYPE searchType; //当前搜索类型
-    QVector<Flight> searchedFlights; //搜索出的航班
+    QVector<FlightRoute> searchedFlights; //搜索出的航班
     QString depCity; //起飞城市
     QString arrCity; //到达城市
     QDate selectedDate; //出发时间
 
-    // change pages
+    ORDER_TYPE orderType; //当前订单类型
+    MAP_TYPE map_type;
+
     void showLoginPage();
     void showMenuPage();
     void showSearchPage();
@@ -80,6 +81,9 @@ public:
     void initReschedule(const QString& dep, const QString& arr, const QDate& date);
     void exitWindow();
 
+    QSet<QString> domesitic_city = {"北京","哈尔滨","呼和浩特","乌鲁木齐","广州","拉萨", "昆明","成都","上海","南宁"};
+    QSet<QString> global_city = {"伦敦","东京","拉斯维加斯","莫斯科","巴黎","纽约"};
+
 private:
     Ui::Flight_Ticket_Management_System *ui;
     LoginPage *loginPage;
@@ -89,9 +93,6 @@ private:
     CheckoutPage *checkoutPage;
     UserPage *userPage;
     MapPage *mapPage;
-
-private slots:
-
 
 };
 #endif // FLIGHT_TICKET_MANAGEMENT_SYSTEM_H

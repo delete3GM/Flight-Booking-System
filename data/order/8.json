@@ -1,0 +1,71 @@
+[
+    {
+        "flightRoute": [
+            {
+                "airline": "厦门航空",
+                "arrivalCity": "呼和浩特",
+                "arrivalTime": "2024-10-01 12:35",
+                "departureCity": "北京",
+                "departureTime": "2024-10-01 08:58",
+                "flightNumber": "MF7879",
+                "price": 1233,
+                "remainSeatNum": 50
+            }
+        ],
+        "orderId": "{0224faeb-7993-4d68-89fe-9a702bc6635c}",
+        "passenger": {
+            "familyName": "we",
+            "givenName": "wef",
+            "id": "fe",
+            "phone": "few",
+            "sex": "Female"
+        },
+        "status": "已支付"
+    },
+    {
+        "flightRoute": [
+            {
+                "airline": "厦门航空",
+                "arrivalCity": "呼和浩特",
+                "arrivalTime": "2024-10-01 12:35",
+                "departureCity": "北京",
+                "departureTime": "2024-10-01 08:58",
+                "flightNumber": "MF7879",
+                "price": 1233,
+                "remainSeatNum": 49
+            }
+        ],
+        "orderId": "{0505b8a3-c514-4617-bebd-46c53331550c}",
+        "passenger": {
+            "familyName": "we",
+            "givenName": "wef",
+            "id": "fe",
+            "phone": "few435",
+            "sex": "Female"
+        },
+        "status": "已支付"
+    },
+    {
+        "flightRoute": [
+            {
+                "airline": "中国国际航空",
+                "arrivalCity": "哈尔滨",
+                "arrivalTime": "2024-10-02 02:25",
+                "departureCity": "北京",
+                "departureTime": "2024-10-01 22:02",
+                "flightNumber": "CA5824",
+                "price": 1353,
+                "remainSeatNum": 39
+            }
+        ],
+        "orderId": "{1e0024e2-f53c-470d-b1aa-c12be5fed3a4}",
+        "passenger": {
+            "familyName": "2134",
+            "givenName": "34",
+            "id": "423",
+            "phone": "243",
+            "sex": "Female"
+        },
+        "status": "已支付"
+    }
+]

@@ -1,0 +1,68 @@
+[
+    {
+        "flightRoute": [
+            {
+                "airline": "厦门航空",
+                "arrivalCity": "呼和浩特",
+                "arrivalTime": "2024-10-01 12:35",
+                "departureCity": "北京",
+                "departureTime": "2024-10-01 08:58",
+                "flightNumber": "MF7879",
+                "price": 1233,
+                "remainSeatNum": 50
+            },
+            {
+                "airline": "厦门航空",
+                "arrivalCity": "哈尔滨",
+                "arrivalTime": "2024-10-01 20:03",
+                "departureCity": "呼和浩特",
+                "departureTime": "2024-10-01 17:58",
+                "flightNumber": "MF2790",
+                "price": 479,
+                "remainSeatNum": 47
+            }
+        ],
+        "orderId": "{4c2dec39-27ba-4d43-a395-e3678fe61995}",
+        "passenger": {
+            "familyName": "7u6",
+            "givenName": "u576u",
+            "id": "67u",
+            "phone": "7u6",
+            "sex": "Male"
+        },
+        "status": "已改签"
+    },
+    {
+        "flightRoute": [
+            {
+                "airline": "厦门航空",
+                "arrivalCity": "乌鲁木齐",
+                "arrivalTime": "2024-10-01 08:28",
+                "departureCity": "北京",
+                "departureTime": "2024-10-01 05:46",
+                "flightNumber": "MF7949",
+                "price": 1489,
+                "remainSeatNum": 51
+            },
+            {
+                "airline": "山东航空",
+                "arrivalCity": "哈尔滨",
+                "arrivalTime": "2024-10-01 19:56",
+                "departureCity": "乌鲁木齐",
+                "departureTime": "2024-10-01 17:22",
+                "flightNumber": "SC1481",
+                "price": 1019,
+                "remainSeatNum": 28
+            }
+        ],
+        "orderId": "{a2a40bfa-950f-49bb-894e-f84472f11981}",
+        "passenger": {
+            "familyName": "7u6",
+            "givenName": "u576u",
+            "id": "67u",
+            "phone": "7u6",
+            "sex": "Male"
+        },
+        "status": "已退票"
+    }
+]

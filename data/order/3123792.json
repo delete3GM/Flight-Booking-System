@@ -1,0 +1,91 @@
+[
+    {
+        "flightRoute": [
+            {
+                "airline": "中国国际航空",
+                "arrivalCity": "拉萨",
+                "arrivalTime": "2024-10-02 02:15",
+                "departureCity": "哈尔滨",
+                "departureTime": "2024-10-01 21:37",
+                "flightNumber": "CA5339",
+                "price": 552,
+                "remainSeatNum": 63
+            }
+        ],
+        "orderId": "{3e96795b-28b9-48b6-b1a8-1945ef5e2d44}",
+        "passenger": {
+            "familyName": "li",
+            "givenName": "jiaming",
+            "id": "1101320232320030929",
+            "phone": "131313131313",
+            "sex": "Male"
+        },
+        "status": "已退票"
+    },
+    {
+        "flightRoute": [
+            {
+                "airline": "厦门航空",
+                "arrivalCity": "哈尔滨",
+                "arrivalTime": "2024-10-01 08:43",
+                "departureCity": "北京",
+                "departureTime": "2024-10-01 04:21",
+                "flightNumber": "MF5673",
+                "price": 1372,
+                "remainSeatNum": 80
+            }
+        ],
+        "orderId": "{557be279-b6c4-4939-94a4-0f34eeab6a48}",
+        "passenger": {
+            "familyName": "li",
+            "givenName": "jiaming",
+            "id": "1101320232320030929",
+            "phone": "131313131313",
+            "sex": "Male"
+        },
+        "status": "已改签"
+    },
+    {
+        "flightRoute": [
+            {
+                "airline": "厦门航空",
+                "arrivalCity": "乌鲁木齐",
+                "arrivalTime": "2024-10-01 08:28",
+                "departureCity": "北京",
+                "departureTime": "2024-10-01 05:46",
+                "flightNumber": "MF7949",
+                "price": 1489,
+                "remainSeatNum": 51
+            },
+            {
+                "airline": "南方航空",
+                "arrivalCity": "拉萨",
+                "arrivalTime": "2024-10-01 16:17",
+                "departureCity": "乌鲁木齐",
+                "departureTime": "2024-10-01 13:52",
+                "flightNumber": "CZ9355",
+                "price": 1335,
+                "remainSeatNum": 49
+            },
+            {
+                "airline": "山东航空",
+                "arrivalCity": "哈尔滨",
+                "arrivalTime": "2024-10-01 23:05",
+                "departureCity": "拉萨",
+                "departureTime": "2024-10-01 19:37",
+                "flightNumber": "SC9152",
+                "price": 1465,
+                "remainSeatNum": 53
+            }
+        ],
+        "orderId": "{d3c3723f-a784-4162-8947-514a6a304bcd}",
+        "passenger": {
+            "familyName": "li",
+            "givenName": "jiaming",
+            "id": "1101320232320030929",
+            "phone": "131313131313",
+            "sex": "Male"
+        },
+        "status": "已支付"
+    }
+]

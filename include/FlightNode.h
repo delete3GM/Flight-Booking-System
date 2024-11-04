@@ -2,8 +2,7 @@
 
 #include "Flight.h"
 
-class FlightNode
-{
+class FlightNode {
 public:
     Flight* flight;  // 指向航班对象的指针
     FlightNode* next;  // 指向下一个节点的指针

@@ -2,6 +2,7 @@
 #define INFOPAGE_H
 
 #include <QWidget>
+#include <QTreeWidgetItem>
 #include "flight_ticket_management_system.h"
 
 namespace Ui {
@@ -14,18 +15,26 @@ class InfoPage : public QWidget {
 public:
     explicit InfoPage(Flight_Ticket_Management_System *mainWindow, QWidget *parent = nullptr);
     ~InfoPage();
-    void updateTableWidget(const QVector<Flight> &flights);
-
+    void initInfoPage();
+    void setupTreeWidget();
+    void addFlightPathToTree(QTreeWidgetItem* item, FlightRoute& flightPath, const int row);
+    void displayFlights(QVector<FlightRoute>& flights);
+    void initAirlineArea();
 
 private:
     Ui::InfoPage *ui;
-    Flight_Ticket_Management_System *mainWindow; // 指向主窗口的指针
+    Flight_Ticket_Management_System *mainWindow;
+    QSet<QString> Airlines;
+    QVector<FlightRoute> originalFlights;  // 原始搜索结果的备份
+    QVector<FlightRoute> filteredFlights;  // 当前筛选后的结果
+    SORT_TYPE currentSortType = SORT_NORMAL;
 
 
 private slots:
-    void updateSearch(int buttonId);
-    void handleTicketBooking(int rowIndex);
+    void handleBookButtonClick(int row);
+    void handleSortButtonClick(int buttonId);
     void info2search();
+    void applyFilters();
 
 };
 

@@ -9,13 +9,26 @@ CONFIG += c++17
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 
+# 外部库
+INCLUDEPATH += $$PWD/lib/
+
+HEADERS += \
+    $$PWD/lib/QRCodeGenerator/qrcodegen.h
+
+SOURCES += \
+    $$PWD/lib/QRCodeGenerator/qrcodegen.cpp
+
+
 # 添加源文件路径
 SOURCES += \
+    src/FlightRoute.cpp \
+    src/FlightRecommendation.cpp \
+    src/UserPreferences.cpp \
     src/Flight.cpp \
     src/FlightNetwork.cpp \
     src/Order.cpp \
     src/OrderManager.cpp \
-    src/User.cpp \
+    src/Passenger.cpp \
     src/Utils.cpp \
     src/main.cpp \
     src/flight_ticket_management_system.cpp \
@@ -31,13 +44,16 @@ SOURCES += \
 INCLUDEPATH += $$PWD/include
 
 HEADERS += \
+    include/FlightRoute.h \
+    include/FlightRecommendation.h \
+    include/UserPreferences.h \
     include/City.h \
     include/Flight.h \
     include/FlightNetwork.h \
     include/FlightNode.h \
     include/Order.h \
     include/OrderManager.h \
-    include/User.h \
+    include/Passenger.h \
     include/Utils.h \
     include/flight_ticket_management_system.h \
     include/pages/LoginPage.h \
@@ -70,9 +86,18 @@ DISTFILES += \
     data/order/1101.txt \
     data/order/3.txt \
     data/order/gh.txt \
+    scripts/word_cloud.py \
     web/css/leaflet.css \
+    web/html/domestic_routes.html \
+    web/html/global_routes.html \
     web/html/map.html \
     web/js/leaflet.js \
+    web/js/leaflet_geodesic.js \
     web/js/leaftlet_geodesic.js \
     web/js/qwebchannel.js
+
+RESOURCES += \
+    resources.qrc
+
+
 

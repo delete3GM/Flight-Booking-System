@@ -1,6 +1,11 @@
 #include "FlightNetwork.h"
+#include "FlightRoute.h"
+#include "Utils.h"
 #include <QDebug>
 #include <QDateTime>
+#include <QMap>
+#include <QPair>
+#include <QElapsedTimer>
 
 FlightNetwork::FlightNetwork(QObject* parent) : QObject(parent) {}
 
@@ -17,7 +22,6 @@ void FlightNetwork::addCity(QString cityName) {
     }
     City* newCity = new City(cityName);
     cities.append(newCity);
-    //qDebug() << "City added:" << cityName;
 }
 
 void FlightNetwork::addFlight(QString airline, QString flightNumber, QString departureCity, QString arrivalCity, QString departureTime,
@@ -38,9 +42,7 @@ void FlightNetwork::addFlight(QString airline, QString flightNumber, QString dep
     if(depCity){
         if (!depCity->flights) {
             depCity->flights = newNode;
-        }
-        //尾插法添加边结点（航线）
-        else {
+        } else {
             FlightNode* temp = depCity->flights;
             while (temp->next) {
                 temp = temp->next;
@@ -68,7 +70,6 @@ void FlightNetwork::readFlightFromFile(const QString& file) {
         qInfo() << "Stream is null!";
         return;
     }
-    //读取数据
     while(!stream->atEnd()) {
         auto lineData = stream->readLine().split(", ", Qt::SkipEmptyParts);
 
@@ -76,9 +77,7 @@ void FlightNetwork::readFlightFromFile(const QString& file) {
         for (QString& part : lineData) {
             part = part.trimmed();
         }
-        //qInfo()<<lineData;
 
-        // 非空字段的数量
         int nonEmptyCount = std::count_if(lineData.begin(), lineData.end(), [](const QString &str) {
             return !str.isEmpty();
         });
@@ -89,7 +88,8 @@ void FlightNetwork::readFlightFromFile(const QString& file) {
             if (!lineData[4].isEmpty()) {
                 addCity(lineData[4]);
             }
-            addFlight(lineData[0], lineData[1], lineData[2], lineData[3], lineData[4], lineData[5], lineData[6].toDouble(), lineData[7].toInt());
+            addFlight(lineData[0], lineData[1], lineData[2], lineData[3], lineData[4],
+                      lineData[5], lineData[6].toDouble(), lineData[7].toInt());
         }
     }
 }
@@ -101,164 +101,142 @@ void FlightNetwork::writeFlightToFile(const QString& filename) {
         return;
     }
     QTextStream out(&file);
-
     for (City* city : cities) {
         FlightNode* node = city->flights;
         while (node) {
-            out << node->flight->getAirline() << ", "
-                << node->flight->getFlightNumber() << ", "
-                << node->flight->getDepartureCity() << ", "
-                << node->flight->getDepartureTime() << ", "
-                << node->flight->getArrivalCity() << ", "
-                << node->flight->getArrivalTime() << ", "
-                << node->flight->getPrice() << ", "
-                << node->flight->getRemainSeatNum() << "\n";
+            out << QString("%1, %2, %3, %4, %5, %6, %7, %8\n")
+            .arg(node->flight->getAirline())
+                .arg(node->flight->getFlightNumber())
+                .arg(node->flight->getDepartureCity())
+                .arg(node->flight->getDepartureTime())
+                .arg(node->flight->getArrivalCity())
+                .arg(node->flight->getArrivalTime())
+                .arg(node->flight->getPrice())
+                .arg(node->flight->getRemainSeatNum());
             node = node->next;
         }
     }
     file.close();
 }
 
-QVector<Flight> FlightNetwork::searchFlights(QString departureCity, QString arrivalCity, QDate selectedDate) {
-    QVector<Flight> result;
-    City* depCity = nullptr;
-    for (auto* city : cities) {
-        if (city->name == departureCity) {
-            depCity = city;
-            break;
-        }
-    }
-    if (depCity) {
-        FlightNode* node = depCity->flights;
-        while (node) {
-            QDateTime depDateTime = QDateTime::fromString(node->flight->getDepartureTime(), "yyyy-MM-dd HH:mm");
-            if (node->flight->getArrivalCity() == arrivalCity && depDateTime.date() == selectedDate) {
-                result.append(*node->flight);
-            }
-            node = node->next;
-        }
-    }
-    return result;
-}
-
-QVector<Flight> FlightNetwork::sortFlights(QVector<Flight> flights, SORT_TYPE sortType) {
-    if (flights.isEmpty()){
-        return flights;
-    }
-    switch (sortType) {
-    case SORT_BY_PRICE:
-        std::sort(flights.begin(), flights.end(), [](const Flight &a, const Flight &b) {
-            return a.getPrice() < b.getPrice();
-        });
-        break;
-    case SORT_BY_DURA:
-        std::sort(flights.begin(), flights.end(), [](const Flight &a, const Flight &b) {
-            return a.getFlightTime() < b.getFlightTime();
-        });
-        break;
-    case SORT_BY_TIME:
-        std::sort(flights.begin(), flights.end(), [](const Flight &a, const Flight &b) {
-            return a.getDepartureTime() < b.getDepartureTime();
-        });
-        break;
-    case SORT_BY_SEAT:
-        std::sort(flights.begin(), flights.end(), [](const Flight &a, const Flight &b) {
-            return a.getRemainSeatNum() < b.getRemainSeatNum();
-        });
-        break;
-    default:
-        break;
-    }
-    return flights;
-}
-
-QVector<QPair<Flight, Flight>> FlightNetwork::findTransferFlight(const QString &departureCity, const QString &arrivalCity, QDate selectedDate) {
-    // 从出发城市的航班中，依次查找到达城市的航班，查看是否有目的地城市的航班，加入到结果列表中
-    QVector<QPair<Flight, Flight>> result;
-    // 获取出发到达城市
-    City *departureCityNode = nullptr;
-    City *arrivalCityNode = nullptr;
-    for (auto *city : cities) {
-        if (city->name == departureCity) {
-            departureCityNode = city;
-        }
-        if (city->name == arrivalCity) {
-            arrivalCityNode = city;
-        }
-    }
-    // 从 departureCityNode 的航班中查找到达城市的航班
-    FlightNode *node = departureCityNode->flights;
-    while (node) {
-        QDateTime depDateTime = QDateTime::fromString(node->flight->getDepartureTime(), "yyyy-MM-dd HH:mm");
-
-        QString currentArrivalCity = node->flight->getArrivalCity();
-        QDateTime currentArrivalTime = QDateTime::fromString(node->flight->getArrivalTime(), "yyyy-MM-dd HH:mm");
-
-        City *currentArrivalCityNode = nullptr;
-        for (auto *city : cities) {
-            if (city->name == currentArrivalCity) {
-                currentArrivalCityNode = city;
-                break;
-            }
-        }
-        // 查看当前到达城市是否有飞往目的地的航班，并且起飞时间比落地时间晚
-        if (currentArrivalCityNode && currentArrivalTime.date() == selectedDate) {
-            FlightNode *transferNode = currentArrivalCityNode->flights;
-            while (transferNode) {
-                QDateTime transferDepTime = QDateTime::fromString(transferNode->flight->getDepartureTime(), "yyyy-MM-dd HH:mm");
-                if (transferNode->flight->getArrivalCity() == arrivalCity &&
-                    transferDepTime > currentArrivalTime && transferDepTime.date() == selectedDate) {
-                    QPair<Flight, Flight> pair;
-                    pair.first = *node->flight;
-                    pair.second = *transferNode->flight;
-                    result.append(pair);
-                }
-                transferNode = transferNode->next;
-            }
-        }
-        node = node->next;
-    }
-    return result;
-}
-
-QVector<QPair<Flight, Flight>> FlightNetwork::sortFlights(QVector<QPair<Flight, Flight>> flights, SORT_TYPE sortType) {
-    if (flights.isEmpty()) {
-        return flights;
-    }
-    switch (sortType) {
-    case SORT_BY_PRICE:
-        std::sort(flights.begin(), flights.end(),
-                [](const QPair<Flight, Flight> &a, const QPair<Flight, Flight> &b) {
-                    return a.first.getPrice() + a.second.getPrice() < b.first.getPrice() + b.second.getPrice();
-                });
-        break;
-    case SORT_BY_DURA:
-        std::sort(flights.begin(), flights.end(),
-                [](const QPair<Flight, Flight> &a, const QPair<Flight, Flight> &b) {
-                    return a.first.getFlightTime() + a.second.getFlightTime() < b.first.getFlightTime() + b.second.getFlightTime();
-                });
-        break;
-    case SORT_BY_TIME:
-        std::sort(flights.begin(), flights.end(),
-                [](const QPair<Flight, Flight> &a, const QPair<Flight, Flight> &b) {
-                    return a.first.getDepartureTime() < b.first.getDepartureTime();
-                });
-        break;
-    case SORT_BY_SEAT:
-        std::sort(flights.begin(), flights.end(),
-                [](const QPair<Flight, Flight> &a, const QPair<Flight, Flight> &b) {
-                    return a.first.getRemainSeatNum() + a.second.getRemainSeatNum() < b.first.getRemainSeatNum() + b.second.getRemainSeatNum();
-                });
-        break;
-    default:
-        break;
-    }
-    return flights;
-}
-
-
 void FlightNetwork::clearData() {
-    // 删除所有城市和相关的航班数据
     qDeleteAll(cities);
     cities.clear();
 }
+
+QVector<FlightRoute> FlightNetwork::searchFlightsDFS(const QString& departureCity,
+                                                     const QString& arrivalCity,
+                                                     const QDate& selectedDate) {
+    QVector<FlightRoute> allPaths;
+    cityMap.clear();
+    for (auto* city : cities) {
+        cityMap[city->name] = city;
+    }
+    City* startCity = cityMap.value(departureCity, nullptr);
+    if (!startCity) {
+        return allPaths;
+    }
+    FlightRoute path;
+    QSet<City*> visited;
+
+    QElapsedTimer timer;
+    timer.start();
+    dfs(departureCity, arrivalCity, selectedDate, startCity, path, allPaths, visited, 0);
+    qint64 elapsedTime = timer.elapsed();
+    qDebug() << "DFS total time:" << elapsedTime << "ms";
+
+    return allPaths;
+}
+
+void FlightNetwork::dfs(const QString& departureCity,
+                        const QString& arrivalCity,
+                        const QDate& selectedDate,
+                        City* currentCity,
+                        FlightRoute& path,
+                        QVector<FlightRoute>& allPaths,
+                        QSet<City*>& visited,
+                        int depth) {
+    if (depth > MAX_DEPTH || !currentCity || visited.contains(currentCity)) {
+        return;
+    }
+    visited.insert(currentCity);
+
+    if (currentCity->name == arrivalCity && !path.isEmpty()) {
+        allPaths.append(path);
+        visited.remove(currentCity);
+        return;
+    }
+   int lastArrivalTime = !path.isEmpty() ?
+                              QDateTime::fromString(path.last()->getArrivalTime(), "yyyy-MM-dd HH:mm").toSecsSinceEpoch() :
+                              QDateTime(selectedDate, QTime(0, 0)).toSecsSinceEpoch();
+
+    for (FlightNode* node = currentCity->flights; node; node = node->next) {
+        int depDateTime = QDateTime::fromString(node->flight->getDepartureTime(), "yyyy-MM-dd HH:mm").toSecsSinceEpoch();
+        bool isValidConnection = (depDateTime > lastArrivalTime) &&
+                                 (depDateTime - lastArrivalTime <= 24 * 3600) &&
+                                 (depDateTime - lastArrivalTime >= 1 * 3600);
+        if (!isValidConnection) {
+            continue;
+        }
+        City* nextCity = cityMap.value(node->flight->getArrivalCity(), nullptr);
+        if (!nextCity || visited.contains(nextCity)) {
+            continue;
+        }
+        path.append(node->flight);
+        dfs(departureCity, arrivalCity, selectedDate, nextCity, path, allPaths, visited, depth + 1);
+        path.removeLast();
+    }
+    visited.remove(currentCity);
+}
+
+QVector<FlightRoute> FlightNetwork::sortFlights(QVector<FlightRoute> flights, SORT_TYPE sortType) {
+    if (flights.isEmpty()) {
+        return flights;
+    }
+    auto calculateTotalPrice = [](const FlightRoute& flightPath) {
+        return std::accumulate(flightPath.begin(), flightPath.end(), 0.0,
+                               [](double sum, Flight* flight) { return sum + flight->getPrice(); });
+    };
+    auto calculateTotalDuration = [](const FlightRoute& flightPath) {
+        return Duration(flightPath.first()->getDepartureTime(), flightPath.last()->getArrivalTime());
+    };
+    auto calculateEarliestDepartureTime = [](const FlightRoute& flightPath) {
+        return QDateTime::fromString(flightPath.first()->getDepartureTime(), Qt::ISODate);
+    };
+    auto calculateTotalSeats = [](const FlightRoute& flightPath) {
+        return std::accumulate(flightPath.begin(), flightPath.end(), 0,
+                               [](int sum, Flight* flight) { return sum + flight->getRemainSeatNum(); });
+    };
+
+    switch (sortType) {
+    case SORT_BY_PRICE:
+        std::sort(flights.begin(), flights.end(),
+                  [calculateTotalPrice](const FlightRoute& a, const FlightRoute& b) {
+                      return calculateTotalPrice(a) < calculateTotalPrice(b);
+                  });
+        break;
+    case SORT_BY_DURA:
+        std::sort(flights.begin(), flights.end(),
+                  [calculateTotalDuration](const FlightRoute& a, const FlightRoute& b) {
+                      return calculateTotalDuration(a) < calculateTotalDuration(b);
+                  });
+        break;
+    case SORT_BY_TIME:
+        std::sort(flights.begin(), flights.end(),
+                  [calculateEarliestDepartureTime](const FlightRoute& a, const FlightRoute& b) {
+                      return calculateEarliestDepartureTime(a) < calculateEarliestDepartureTime(b);
+                  });
+        break;
+    case SORT_BY_SEAT:
+        std::sort(flights.begin(), flights.end(),
+                  [calculateTotalSeats](const FlightRoute& a, const FlightRoute& b) {
+                      return calculateTotalSeats(a) < calculateTotalSeats(b);
+                  });
+        break;
+    default:
+        break;
+    }
+    return flights;
+}
+
+

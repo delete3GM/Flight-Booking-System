@@ -1,16 +1,21 @@
 #include "pages/CheckoutPage.h"
+#include "qboxlayout.h"
 #include "ui_checkoutpage.h"
 #include <QMessageBox>
+#include <QTimer>
+#include "Utils.h"
+
 
 CheckoutPage::CheckoutPage(Flight_Ticket_Management_System *mainWindow, QWidget *parent)
      : QWidget(parent), ui(new Ui::CheckoutPage), mainWindow(mainWindow) {
     ui->setupUi(this);
-
     initCheckout();
 
-    connect(ui->submitBtn, SIGNAL(released()), this, SLOT(addPassenger()));
-    connect(ui->cancelBtn, SIGNAL(released()), this, SLOT(checkout2info()));
+    connect(ui->submitBtn, &QPushButton::released, this, &CheckoutPage::addPassenger);
+    connect(ui->cancelBtn, &QPushButton::released, this, &CheckoutPage::checkout2info);
+    //connect(passengerButtonGroup, SIGNAL(buttonClicked(int)), this, SLOT(onPassengerButtonClicked(int)));
 }
+
 CheckoutPage::~CheckoutPage() {
     delete ui;
 }
@@ -31,21 +36,74 @@ void CheckoutPage::initCheckout() {
         ui->passenger_id->clear();
         ui->passenger_id->setPlaceholderText("身份证号");
         ui->passenger_phone->clear();
-        ui->passenger_phone->setPlaceholderText("手机号码"); 
+        ui->passenger_phone->setPlaceholderText("手机号码");
     }
-    if(mainWindow->searchType == Flight_Ticket_Management_System::TRANSFER){
-        QString totalPrice = "待支付￥" + QString::number(mainWindow->selectedFlight.getPrice()+mainWindow->selectedFlight2.getPrice());
-        ui->flightInfo->setText(mainWindow->selectedFlight.showInfo() + "\n" +  mainWindow->selectedFlight2.showInfo() + "\n" + totalPrice);
-    } else {
-        ui->flightInfo->setText(mainWindow->selectedFlight.showInfo());
-    }
+    ui->flightInfo->setText(mainWindow->selectedFlight.showFlightsInfo());
+    ui->historyArea->setWidgetResizable(true);
+    loadPassengerHistory();
+    initPassengerArea();
 }
 
 void CheckoutPage::checkout2info() {
     mainWindow->showInfoPage();
 }
 
+void CheckoutPage::initPassengerArea() {
+    QVBoxLayout *passengerLayout = new QVBoxLayout(ui->passengerContainer);
+    passengerLayout->setAlignment(Qt::AlignTop);
+    while (QLayoutItem* item = passengerLayout->takeAt(0)) {
+        delete item->widget();
+        delete item;
+    }
+    foreach (const Passenger &passenger, passengerList) {
+        QPushButton *button = new QPushButton(passenger.getFamilyName() + " " + passenger.getGivenName(), this);
+        passengerLayout->addWidget(button);
+        connect(button, &QPushButton::clicked, this, [this, passenger]() {
+            fillPassengerInfo(passenger);
+        });
+    }
+    ui->passengerContainer->setLayout(passengerLayout);
+}
+
+void CheckoutPage::loadPassengerHistory() {
+    QList<Order> orders = mainWindow->orderManager.getOrders();
+    passengerList.clear();
+    foreach (const Order &order, orders) {
+        Passenger passenger = order.getPassenger();
+        if (!passengerList.contains(passenger)) {
+            passengerList.append(passenger);
+        }
+    }
+}
+
+void CheckoutPage::fillPassengerInfo(const Passenger &passenger) {
+    ui->familyname->setText(passenger.getFamilyName());
+    ui->givenname->setText(passenger.getGivenName());
+    if (passenger.getSex() == "Male") {
+        ui->isMale->setChecked(true);
+    } else if (passenger.getSex() == "Female") {
+        ui->isFemale->setChecked(true);
+    }
+    ui->passenger_id->setText(passenger.getId());
+    ui->passenger_phone->setText(passenger.getPhone());
+}
+
 void CheckoutPage::addPassenger() {
+    Passenger passenger = createPassenger();
+    if (passenger.getFamilyName() == "") {
+        return;
+    }
+    Order order = createOrder(passenger);
+    if (mainWindow->orderType == Flight_Ticket_Management_System::RESCHEDULE_ORDER) {
+        handleRescheduleOrder(order);
+    } else {
+        handleNewOrder(order);
+    }
+    mainWindow->showMenuPage();
+    resetGenderRadioButtons();
+}
+
+Passenger CheckoutPage::createPassenger() {
     QString familyName = ui->familyname->text();
     QString givenName = ui->givenname->text();
     QString passengerId = ui->passenger_id->text();
@@ -54,119 +112,94 @@ void CheckoutPage::addPassenger() {
 
     if (familyName.isEmpty() || givenName.isEmpty() || passengerId.isEmpty() || passengerPhone.isEmpty() || sex.isEmpty()) {
         QMessageBox::warning(this, "错误", "请填写完整信息！");
-        return;
+        return Passenger();
     }
-    // 如果是改签订单,我们需要判断是不是同一趟航班
-    if (mainWindow->orderType == Flight_Ticket_Management_System::RESCHEDULE_ORDER) {
-        if (mainWindow->selectedFlight == mainWindow->rescheduleOrder.getFlight()) {
-            QMessageBox::warning(this, "错误", "改签订单不能改签同一趟航班！");
-            return;
+    return Passenger(familyName, givenName, sex, passengerId, passengerPhone);
+}
+
+Order CheckoutPage::createOrder(const Passenger& passenger) {
+    Order order(QUuid::createUuid().toString(), passenger, mainWindow->selectedFlight, "已支付");
+    updateFlightSeats(order);
+    saveOrderToFile(order);
+    return order;
+}
+
+void CheckoutPage::handleRescheduleOrder(const Order& order) {
+    mainWindow->rescheduleOrder.setStatus("已改签");
+
+    double oldPrice = mainWindow->rescheduleOrder.getFlightRoute().getTotalPrice();
+    double newPrice = mainWindow->selectedFlight.getTotalPrice();
+    double priceDifference = newPrice - oldPrice;
+    QString text = "";
+    if(priceDifference > 0) {
+        text="Reschedule Success!\nYou have paid "+ QString::number(priceDifference) +" CNY!";
+    } else if(priceDifference == 0) {
+        text="Reschedule Success!";
+    } else if(priceDifference < 0) {
+        text="Reschedule Success!\nYou have received a refund of "+ QString::number(-1 * priceDifference) +" CNY!";
+    }
+    showQRCode(text);
+    mainWindow->orderManager.modifyOrder(mainWindow->orderManager.getOrders().indexOf(mainWindow->rescheduleOrder), mainWindow->rescheduleOrder);
+    increaseSeatsForRescheduledFlight();
+    QMessageBox::information(this, "确认", "改签成功！");
+    mainWindow->orderType = Flight_Ticket_Management_System::NONE;
+    mainWindow->network.writeFlightToFile(FLIGHT_FILE);
+}
+
+void CheckoutPage::handleNewOrder(const Order& order) {
+    QString text="Payment Success!\nYou have paid "+ QString::number(order.getFlightRoute().getTotalPrice()) +" CNY!";
+    showQRCode(text);
+    mainWindow->network.writeFlightToFile(FLIGHT_FILE);
+    QMessageBox::information(this, "确认", "订票成功！");
+}
+
+void CheckoutPage::updateFlightSeats(const Order& order) {
+    for (const Flight* flight : order.getFlightRoute()) {
+        for (City* city : mainWindow->network.getCities()) {
+            FlightNode* node = city->flights;
+            while (node) {
+                if (node->flight->getFlightNumber() == flight->getFlightNumber()) {
+                    node->flight->setRemainSeatNum(node->flight->getRemainSeatNum() - 1);
+                    qDebug() << "Updated remaining seats for flight " << flight->getFlightNumber() << " to " << node->flight->getRemainSeatNum();
+                    break;
+                }
+                node = node->next;
+            }
         }
     }
-    // 创建乘客对象
-    User passenger(familyName, givenName, sex, passengerId, passengerPhone);
-    qDebug() << "乘客信息已提交:" << passenger.toString();
-    Order *order = nullptr;
-    // 创建订单对象
-    if(mainWindow->searchType == Flight_Ticket_Management_System::DIRECT) {
-        order = new Order(QUuid::createUuid().toString(), passenger, mainWindow->selectedFlight, "已支付");
+}
+
+void CheckoutPage::increaseSeatsForRescheduledFlight() {
+    for (const Flight* flight : mainWindow->rescheduleOrder.getFlightRoute()) {
+        increaseSeatsForFlight(flight);
     }
-    else if(mainWindow->searchType == Flight_Ticket_Management_System::TRANSFER) {
-        order = new Order(QUuid::createUuid().toString(), passenger, mainWindow->selectedFlight, "已支付",Order::OrderType::TRANSFER,mainWindow->selectedFlight2);
-    }
-    Flight thisFlight = mainWindow->selectedFlight;
-    // 减少余票数
+}
+
+void CheckoutPage::increaseSeatsForFlight(const Flight* flight) {
     for (City* city : mainWindow->network.getCities()) {
         FlightNode* node = city->flights;
         while (node) {
-            if (node->flight->getFlightNumber() == thisFlight.getFlightNumber()) {
-                node->flight->setRemainSeatNum(node->flight->getRemainSeatNum() - 1);
-                qDebug() << "Updated remaining seats for flight " << thisFlight.getFlightNumber() << " to " << node->flight->getRemainSeatNum();
+            if (node->flight->getFlightNumber() == flight->getFlightNumber()) {
+                node->flight->setRemainSeatNum(node->flight->getRemainSeatNum() + 1);
                 break;
             }
             node = node->next;
         }
     }
-    if(mainWindow->searchType == Flight_Ticket_Management_System::TRANSFER) {
-        thisFlight = mainWindow->selectedFlight2;
-        for (City* city : mainWindow->network.getCities()) {
-            FlightNode* node = city->flights;
-            while (node) {
-                if (node->flight->getFlightNumber() == thisFlight.getFlightNumber()) {
-                    node->flight->setRemainSeatNum(node->flight->getRemainSeatNum() - 1);
-                    qDebug() << "Updated remaining seats for flight " << thisFlight.getFlightNumber() << " to " << node->flight->getRemainSeatNum();
-                    break;
-                }
-                node = node->next;
-            }
-        }
-    }
-    qInfo() << "ORDER:" << order->toString();
+}
 
-    // 保存到订单
-    QString filePath = ORDER_PATH + mainWindow->currentId + ".txt";
-    mainWindow->orderManager.loadOrdersFromFile(filePath);
-    mainWindow->orderManager.addOrder(*order); // 添加新订单到管理器
-    delete order;
-    if (!mainWindow->orderManager.saveOrdersToFile(filePath)) {
-        QMessageBox::warning(this, "错误", "保存订单失败！");
-        return;
-    } else {
-        qInfo() << "此订单已保存在" << mainWindow->currentId << ".txt文件中";
-    }
-    if(mainWindow->orderType==Flight_Ticket_Management_System::RESCHEDULE_ORDER){
-        // 修改原订单状态为已改签
-        mainWindow->rescheduleOrder.setStatus("已改签");
-        mainWindow->orderManager.modifyOrder(mainWindow->orderManager.getOrders().indexOf(mainWindow->rescheduleOrder), mainWindow->rescheduleOrder);
-        if (!mainWindow->orderManager.saveOrdersToFile(filePath)) {
-            QMessageBox::warning(this, "错误", "保存订单失败！");
-            return;
-        } else {
-            qInfo() << "此订单已保存在" << mainWindow->currentId << ".txt文件中";
-        }
+bool CheckoutPage::saveOrderToFile(const Order& order) {
+    QString filePath = ORDER_PATH + mainWindow->currentUserId + ".json";
+    mainWindow->orderManager.addOrder(order);
+    return mainWindow->orderManager.saveOrdersToJsonFile(filePath);
+}
 
-        // 增加余票信息
-        for (City* city : mainWindow->network.getCities()) {
-            FlightNode* node = city->flights;
-            while (node) {
-                if (node->flight->getFlightNumber() == mainWindow->rescheduleOrder.getFlight().getFlightNumber()) {
-                    node->flight->setRemainSeatNum(node->flight->getRemainSeatNum() + 1);
-                    qDebug() << "Updated remaining seats for flight" << mainWindow->rescheduleOrder.getFlight().getFlightNumber() << "to" << node->flight->getRemainSeatNum();
-                    break;
-                }
-                node = node->next;
-            }
-        }
-        if(mainWindow->rescheduleOrder.getType() == Order::OrderType::TRANSFER) {
-            // 增加余票信息
-            for (City *city : mainWindow->network.getCities()) {
-                FlightNode *node = city->flights;
-                while (node) {
-                    if (node->flight->getFlightNumber() == mainWindow->rescheduleOrder.getFlight2().getFlightNumber()) {
-                        node->flight->setRemainSeatNum(node->flight->getRemainSeatNum() + 1);
-                        qDebug() << "Updated remaining seats for flight"<< mainWindow->rescheduleOrder.getFlight2().getFlightNumber() << "to"<< node->flight->getRemainSeatNum();
-                        break;
-                    }
-                    node = node->next;
-                }
-            }
-        }
-        QMessageBox::information(this, "确认", "改签成功！");
-        mainWindow->orderType = Flight_Ticket_Management_System::NONE;
-        // 写回航班文件
-        mainWindow->network.writeFlightToFile(FLIGHT_FILE);
-    }
-    else{
-        QMessageBox::information(this, "确认", "订票成功！");
-        // 写回航班文件
-        mainWindow->network.writeFlightToFile(FLIGHT_FILE);
-    }
-    mainWindow->showMenuPage();
+void CheckoutPage::resetGenderRadioButtons() {
     ui->isMale->setCheckable(false);
     ui->isMale->setChecked(false);
     ui->isMale->setCheckable(true);
-
     ui->isFemale->setCheckable(false);
     ui->isFemale->setChecked(false);
     ui->isFemale->setCheckable(true);
 }
+

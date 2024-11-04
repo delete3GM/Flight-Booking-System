@@ -19,33 +19,11 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <widget class="QTableWidget" name="flightTableWidget">
-   <property name="geometry">
-    <rect>
-     <x>80</x>
-     <y>100</y>
-     <width>800</width>
-     <height>400</height>
-    </rect>
-   </property>
-   <property name="minimumSize">
-    <size>
-     <width>800</width>
-     <height>400</height>
-    </size>
-   </property>
-   <property name="maximumSize">
-    <size>
-     <width>800</width>
-     <height>400</height>
-    </size>
-   </property>
-  </widget>
   <widget class="QRadioButton" name="early_sort">
    <property name="geometry">
     <rect>
      <x>750</x>
-     <y>70</y>
+     <y>90</y>
      <width>71</width>
      <height>16</height>
     </rect>
@@ -58,7 +36,7 @@
    <property name="geometry">
     <rect>
      <x>680</x>
-     <y>70</y>
+     <y>90</y>
      <width>71</width>
      <height>16</height>
     </rect>
@@ -80,32 +58,11 @@
     <string>返回</string>
    </property>
   </widget>
-  <widget class="QLabel" name="infoTitleLbl">
-   <property name="geometry">
-    <rect>
-     <x>431</x>
-     <y>30</y>
-     <width>151</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>18</pointsize>
-    </font>
-   </property>
-   <property name="text">
-    <string>航班信息</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignmentFlag::AlignCenter</set>
-   </property>
-  </widget>
   <widget class="QRadioButton" name="price_sort">
    <property name="geometry">
     <rect>
      <x>820</x>
-     <y>70</y>
+     <y>90</y>
      <width>91</width>
      <height>16</height>
     </rect>
@@ -114,19 +71,171 @@
     <string>价格最低</string>
    </property>
   </widget>
-  <widget class="QRadioButton" name="default_sort">
+  <widget class="QLabel" name="showCityLbl">
    <property name="geometry">
     <rect>
-     <x>610</x>
-     <y>70</y>
-     <width>71</width>
-     <height>16</height>
+     <x>240</x>
+     <y>20</y>
+     <width>541</width>
+     <height>61</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>18</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignmentFlag::AlignCenter</set>
+   </property>
+  </widget>
+  <widget class="QTreeWidget" name="flightTreeWidget">
+   <property name="geometry">
+    <rect>
+     <x>220</x>
+     <y>110</y>
+     <width>701</width>
+     <height>411</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true"/>
+   </property>
+   <column>
+    <property name="text">
+     <string notr="true">1</string>
+    </property>
+   </column>
+  </widget>
+  <widget class="QLabel" name="transLbl">
+   <property name="geometry">
+    <rect>
+     <x>110</x>
+     <y>150</y>
+     <width>91</width>
+     <height>31</height>
     </rect>
    </property>
    <property name="text">
-    <string>默认排序</string>
+    <string>转机次数</string>
    </property>
   </widget>
+  <widget class="QLabel" name="airlineLbl">
+   <property name="geometry">
+    <rect>
+     <x>110</x>
+     <y>290</y>
+     <width>81</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>航空公司</string>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="checkBox1">
+   <property name="geometry">
+    <rect>
+     <x>80</x>
+     <y>190</y>
+     <width>81</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>只看直飞</string>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="checkBox2">
+   <property name="geometry">
+    <rect>
+     <x>80</x>
+     <y>220</y>
+     <width>81</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>中转一次</string>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="checkBox3">
+   <property name="geometry">
+    <rect>
+     <x>80</x>
+     <y>250</y>
+     <width>81</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>两次及以上</string>
+   </property>
+  </widget>
+  <widget class="QScrollArea" name="airlineArea">
+   <property name="geometry">
+    <rect>
+     <x>50</x>
+     <y>330</y>
+     <width>141</width>
+     <height>181</height>
+    </rect>
+   </property>
+   <property name="widgetResizable">
+    <bool>true</bool>
+   </property>
+   <widget class="QWidget" name="scrollAreaWidgetContents">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>139</width>
+      <height>179</height>
+     </rect>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QLabel" name="label">
+   <property name="geometry">
+    <rect>
+     <x>40</x>
+     <y>110</y>
+     <width>161</width>
+     <height>411</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>14</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel { border: 1px solid black; }
+</string>
+   </property>
+   <property name="text">
+    <string>筛选条件</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignmentFlag::AlignHCenter|Qt::AlignmentFlag::AlignTop</set>
+   </property>
+  </widget>
+  <zorder>label</zorder>
+  <zorder>early_sort</zorder>
+  <zorder>time_sort</zorder>
+  <zorder>backBtn</zorder>
+  <zorder>price_sort</zorder>
+  <zorder>showCityLbl</zorder>
+  <zorder>flightTreeWidget</zorder>
+  <zorder>transLbl</zorder>
+  <zorder>airlineLbl</zorder>
+  <zorder>checkBox1</zorder>
+  <zorder>checkBox2</zorder>
+  <zorder>checkBox3</zorder>
+  <zorder>airlineArea</zorder>
  </widget>
  <resources/>
  <connections/>

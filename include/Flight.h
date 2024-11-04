@@ -11,7 +11,7 @@ private:
     QString arrivalCity;
     QString arrivalTime;
     double price = 0;
-    int remainSeatNum;
+    int remainSeatNum = 0;
 
 public:
     Flight();
@@ -36,11 +36,11 @@ public:
     void setPrice(double p);
     void setRemainSeatNum(int remainSeat);
 
-    //int getCost(); //计算代价
     QString toString() const;
     QString showInfo();
 
     bool operator == (const Flight& other) const;
+    bool operator != (const Flight& other) const;
 
 
 };

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <script src="../../Cesium/Cesium.js"></script>
+    <link href="../../Cesium/Widgets/widgets.css" rel="stylesheet">
+    <style>
+        #infoBox {
+            position: absolute;
+            background-color: white;
+            border: 1px solid black;
+            padding: 5px;
+            display: none;
+            z-index: 999;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="cesiumContainer" style="width: 100%; height: 100vh;"></div>
+    <div id="infoBox"></div> <!-- 信息框 -->
+    <script>
+        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI3ZDFhYTJhNC01ZjQzLTQwMTgtYjBiZC05ODc2M2FhZjA3ZjciLCJpZCI6MjQ3NzIyLCJpYXQiOjE3Mjg4MDY0OTR9.TJI5vZyigVhNYd-5698-f8beJwYs42XOB4p1iz9Spao';
+
+        const viewer = new Cesium.Viewer('cesiumContainer', {
+            terrainProvider: null,
+            animation: false,
+            timeline: false,
+            baseLayerPicker: false,
+            geocoder: false,
+            sceneModePicker: false,
+            navigationHelpButton: false,
+            infoBox: false,
+            homeButton: false,
+        });
+
+        viewer.camera.flyTo({
+            destination: Cesium.Cartesian3.fromDegrees(105, 40, 18000000),
+            duration: 2
+        });
+
+        const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+        const infoBox = document.getElementById('infoBox');
+
+        let polylineEntityIdCounter = 0; // 全局变量，用于生成唯一的ID
+
+        window.drawPolyline = function (startLongitude, startLatitude, endLongitude, endLatitude, flightInfo) {
+            const start = Cesium.Cartesian3.fromDegrees(startLongitude, startLatitude);
+            const end = Cesium.Cartesian3.fromDegrees(endLongitude, endLatitude);
+            const positions = Cesium.PolylinePipeline.generateCartesianArc({
+                positions: [start, end]
+            });
+
+            // 使用全局变量生成唯一的ID
+            const uniqueId = 'flightPolyline-' + (++polylineEntityIdCounter);
+            const polylineEntity = viewer.entities.add({
+                id: uniqueId,
+                polyline: {
+                    positions: positions,
+                    width: 4,
+                    material: Cesium.Color.BLUE ,
+                    height: 100000
+                }
+            });
+
+            // 将flightInfo存储在实体上
+            polylineEntity.polyline.flightInfo = flightInfo;
+
+            console.log('Added polyline entity with ID:', uniqueId);
+        };
+
+        handler.setInputAction(function (movement) {
+            const pickedObject = viewer.scene.pick(movement.endPosition);
+            console.log('Picked object:', pickedObject);
+
+            if (Cesium.defined(pickedObject) && pickedObject.id) {
+                infoBox.style.display = 'block';
+                infoBox.style.left = movement.endPosition.x + 'px';
+                infoBox.style.top = movement.endPosition.y + 'px';
+                infoBox.innerHTML = pickedObject.id.polyline.flightInfo;
+                console.log('Polyline entity picked:', pickedObject.id);
+            } else {
+                infoBox.style.display = 'none';
+            }
+        }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+
+        //drawPolyline(116.4074, 39.9042, -74.0060, 40.7128, '航班：北京到纽约');
+
+    </script>
+</body>
+
+</html>

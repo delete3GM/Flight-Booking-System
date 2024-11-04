@@ -1,5 +1,12 @@
 #include "Utils.h"
+#include "qboxlayout.h"
 #include "qcryptographichash.h"
+#include "qdialog.h"
+#include "qimage.h"
+#include "QRCodeGenerator/qrcodegen.hpp"
+#include "qlabel.h"
+#include "qpainter.h"
+#include "qtimer.h"
 #include <QDateTime>
 
 
@@ -16,18 +23,18 @@ QTextStream* LoadFlightFile(const QString& filename) {
     return stream;
 }
 
-int Duration(QString a, QString b) {
-    QDateTime depTime = QDateTime::fromString(a, "yyyy-MM-dd HH:mm");
-    QDateTime arrTime = QDateTime::fromString(b, "yyyy-MM-dd HH:mm");
+int Duration(QString dep, QString arr) {
+    QDateTime depTime = QDateTime::fromString(dep, "yyyy-MM-dd HH:mm");
+    QDateTime arrTime = QDateTime::fromString(arr, "yyyy-MM-dd HH:mm");
 
-    qint64 msecs = depTime.msecsTo(arrTime); // 计算时间差，以毫秒为单位
-    int seconds = msecs / 1000; // 转换为秒
-    return seconds / 60; // 返回分钟数
+    qint64 msecs = depTime.msecsTo(arrTime);
+    int seconds = msecs / 1000;
+    return seconds / 60; // 分钟
 }
 
 QString hashPassword(const QString &password) {
     QByteArray passwordData = password.toUtf8();
-    QCryptographicHash hash(QCryptographicHash::Sha256); // 使用SHA-256哈希算法
+    QCryptographicHash hash(QCryptographicHash::Sha256);
     hash.addData(passwordData);
     QByteArray hashResult = hash.result();
     return QString(hashResult.toHex());
@@ -37,20 +44,17 @@ QString getPasswordById(const QString &id) {
     QFile file(USER_FILE);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         qWarning() << "无法打开文件:" << USER_FILE;
-        return QString(); // 返回空字符串表示操作失败
+        return QString();
     }
-
     QTextStream in(&file);
     while (!in.atEnd()) {
         QString line = in.readLine();
         QStringList fields = line.split(' ');
 
-        // 确保该行包含ID和密码两个字段
         if (fields.size() == 2) {
             QString fileId = fields[0];
             QString password = fields[1];
 
-            // 如果找到匹配的ID，返回对应的密码
             if (fileId == id) {
                 file.close();
                 return password;
@@ -61,4 +65,36 @@ QString getPasswordById(const QString &id) {
     return QString();
 }
 
+QImage GenerateQRCodeImage(const QString& text) {
+    qrcodegen::QrCode qr = qrcodegen::QrCode::encodeText(text.toStdString().c_str(), qrcodegen::QrCode::Ecc::MEDIUM);
+    int size = qr.getSize();
+    int moduleSize = 10; // 每个模块的像素大小
+    QImage image(size * moduleSize, size * moduleSize, QImage::Format_ARGB32);
+    image.fill(Qt::white);
 
+    QPainter painter(&image);
+    painter.setBrush(Qt::black);
+
+    for (int y = 0; y < size; y++) {
+        for (int x = 0; x < size; x++) {
+            if (qr.getModule(x, y)) {
+                painter.drawRect(x * moduleSize, y * moduleSize, moduleSize, moduleSize);
+            }
+        }
+    }
+    painter.end();
+    return image;
+}
+
+void showQRCode(QString text) {
+    QImage image = GenerateQRCodeImage(text);
+    QDialog* dialog = new QDialog();
+    dialog->setWindowTitle("QR Code");
+    QVBoxLayout* layout = new QVBoxLayout(dialog);
+    QLabel* label = new QLabel(dialog);
+    label->setPixmap(QPixmap::fromImage(image));
+    layout->addWidget(label);
+    dialog->setLayout(layout);
+    QTimer::singleShot(6000, dialog, &QDialog::accept);
+    dialog->exec();
+}

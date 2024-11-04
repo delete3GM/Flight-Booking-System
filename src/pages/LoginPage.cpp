@@ -8,19 +8,20 @@
 LoginPage::LoginPage(Flight_Ticket_Management_System *mainWindow, QWidget *parent)
     : QWidget(parent), ui(new Ui::LoginPage), mainWindow(mainWindow) {
     ui->setupUi(this);
-    // 初始化登录界面
     initLoginPage();
 
-    // 连接信号和槽
     connect(ui->loginBtn, SIGNAL(released()), this, SLOT(Login()));
     connect(ui->signupBtn, SIGNAL(released()), this, SLOT(signUp()));
     connect(ui->changePswBtn, &QLabel::linkActivated, this, &LoginPage::changePsw);
+
+    toggleAction = ui->typePsw->addAction(QIcon(":/images/resources/images/eye_close.png"), QLineEdit::TrailingPosition);
+    connect(toggleAction, &QAction::triggered, this, &LoginPage::togglePasswordVisibility);
+
 }
 
 LoginPage::~LoginPage() {
     delete ui;
 }
-
 
 void LoginPage::initLoginPage() {
     ui->typeAcnt->clear();
@@ -30,7 +31,7 @@ void LoginPage::initLoginPage() {
     ui->typePsw->setEchoMode(QLineEdit::Password);
     ui->typeAcnt->setPlaceholderText("请输入身份证号");
     ui->typePsw->setPlaceholderText("请输入密码");
-    // 设置身份证号输入框的验证器
+
     QRegularExpressionValidator *validator = new QRegularExpressionValidator(
         QRegularExpression("^[1-9]\\d{5}(18|19|20)\\d{2}((0[1-9])|(10|11|12))(([0-2][1-9])|10|20|30|31)\\d{3}[0-9Xx]$"), this);
     ui->typeAcnt->setValidator(validator);
@@ -66,9 +67,9 @@ bool LoginPage::isUserRegistered(const QString& id, const QString& psw) {
 }
 
 void LoginPage::Login() {
-    mainWindow->currentId = getID();
+    mainWindow->currentUserId = getID();
     QString Psw = getPassword();
-    if (mainWindow->currentId.isEmpty() || Psw.isEmpty()) {
+    if (mainWindow->currentUserId.isEmpty() || Psw.isEmpty()) {
         QMessageBox::warning(this, "登录失败", "身份证号或密码不能为空！");
         return;
     }
@@ -77,7 +78,7 @@ void LoginPage::Login() {
         mainWindow->exitWindow();
         return;
     }
-    if (isUserRegistered(mainWindow->currentId, Psw)) {
+    if (isUserRegistered(mainWindow->currentUserId, Psw)) {
         QMessageBox::information(this, "登录成功", "欢迎回来！");
         mainWindow->loadUserOrders();
         mainWindow->showMenuPage();
@@ -137,16 +138,14 @@ void LoginPage::signUp() {
     file.close();
 
     QMessageBox::information(this, "注册成功", "用户注册成功！");
-    mainWindow->currentId = id;
+    mainWindow->currentUserId = id;
     mainWindow->loadUserOrders();
     mainWindow->showMenuPage();
 }
 
 void LoginPage::changePsw() {
-    // 获取当前用户ID
     QString currentId = getID();
 
-    // 检查当前用户ID是否为空
     if (currentId.isEmpty()) {
         QMessageBox::warning(this, "错误", "请输入身份证号！");
         return;
@@ -168,7 +167,6 @@ void LoginPage::changePsw() {
         }
     }
     file.close();
-
     if (!userFound) {
         QMessageBox::warning(this, "错误", "当前用户不存在，无法修改密码！");
         initLoginPage();
@@ -176,8 +174,6 @@ void LoginPage::changePsw() {
     }
     showChangePasswordDialog();
 }
-
-
 
 bool LoginPage::updatePassword(const QString &newPassword, const QString &confirmPassword) {
     if (newPassword.isEmpty() || confirmPassword.isEmpty()) {
@@ -200,7 +196,6 @@ bool LoginPage::updatePassword(const QString &newPassword, const QString &confir
         return false;
     }
 
-    // 读取文件并更新密码
     QFile file(USER_FILE);
     if (!file.open(QIODevice::ReadWrite | QIODevice::Text)) {
         qWarning() << "无法打开文件: " << USER_FILE;
@@ -269,6 +264,19 @@ void LoginPage::showChangePasswordDialog() {
             ui->typePsw->clear();
         }
     });
-
     dialog.exec();
+}
+
+void LoginPage::togglePasswordVisibility() {
+    QIcon eye_close(":/images/resources/images/eye_close.png");
+    QIcon eye_open(":/images/resources/images/eye_open.png");
+    if (ui->typePsw->echoMode() == QLineEdit::Password) {
+        ui->typePsw->setEchoMode(QLineEdit::Normal);
+        QPixmap pixmap = eye_open.pixmap(64, 64);
+        toggleAction->setIcon(QIcon(pixmap));
+    } else {
+        ui->typePsw->setEchoMode(QLineEdit::Password);
+        QPixmap pixmap = eye_close.pixmap(64, 64);
+        toggleAction->setIcon(QIcon(pixmap));
+    }
 }

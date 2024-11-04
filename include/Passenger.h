@@ -4,9 +4,8 @@
 #include <QString>
 #include <QTextStream>
 #include <QFile>
-#include "Flight.h"
 
-class User {
+class Passenger {
 private:
     QString familyName;
     QString givenName;
@@ -15,8 +14,8 @@ private:
     QString phone;
 
 public:
-    User();
-    User(QString f, QString g, QString s, QString i, QString p);
+    Passenger();
+    Passenger(QString f, QString g, QString s, QString i, QString p);
 
     QString getFamilyName() const;
     QString getGivenName() const;
@@ -28,10 +27,10 @@ public:
     void setSex(const QString &s) ;
     void setId(const QString &i) ;
     void setPhone(const QString &p) ;
+
     QString toString()const;
 
-    void addFlightRecord(const Flight& flight);
-    static void saveUser(const QList<User>& userList);
+    bool operator==(const Passenger &other) const;
 };
-extern QList<User> userList;
+
 

@@ -5,9 +5,9 @@ MenuPage::MenuPage(Flight_Ticket_Management_System *mainWindow, QWidget *parent)
     : QWidget(parent), ui(new Ui::MenuPage), mainWindow(mainWindow) {
     ui->setupUi(this);
 
-    connect(ui->searchBtn, SIGNAL(released()), this, SLOT(menu2search()));
-    connect(ui->userBtn, SIGNAL(released()), this, SLOT(menu2user()));
-    connect(ui->exitBtn, SIGNAL(released()), this, SLOT(Exit()));
+    connect(ui->searchBtn, &QPushButton::released, this, &MenuPage::menu2search);
+    connect(ui->userBtn, &QPushButton::released, this, &MenuPage::menu2user);
+    connect(ui->exitBtn, &QPushButton::released, this, &MenuPage::Exit);
 }
 
 MenuPage::~MenuPage() {

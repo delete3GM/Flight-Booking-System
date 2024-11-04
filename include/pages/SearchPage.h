@@ -18,8 +18,7 @@ public:
     void initSearchPage();
     void initializeDepBox();
     void initializeArrBox();
-    void searchFlights();
-    void searchFlightsWithTransfers();
+
     void setDataForReschedule(const QString& dep, const QString& arr, const QDate& date);
     void loadCitiesIntoComboBox(QComboBox* comboBox, const QVector<QString>& cityNames);
 
@@ -34,14 +33,17 @@ private slots:
     void showCalendar();
     void updateButtonWithDate(const QDate &date);
     void Exchange();
-    void directSearch();
-    void tranSearch();
     void Back();
-    void setUserHint(int index);
-    void initHint();
+    void callPythonScript(const QString& city);
+    void searchFlights(); 
+    void updateDepWeather(const QString &output);
+    void updateArrWeather(const QString &output);
 
 protected:
     void mousePressEvent(QMouseEvent *event) override;
+
+signals:
+    void pythonScriptOutputReceived(const QString &output);
 
 };
 

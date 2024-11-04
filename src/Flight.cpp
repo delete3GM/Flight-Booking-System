@@ -5,7 +5,9 @@
 
 Flight::Flight(){}
 
-
+Flight::Flight(QString a, QString f, QString dCity, QString depTime, QString aCity, QString arrTime, double p, int remainSeat)
+    : airline(a), flightNumber(f), departureCity(dCity), departureTime(depTime), arrivalCity(aCity), arrivalTime(arrTime),
+    price(p), remainSeatNum(remainSeat) {}
 
 QString Flight::getAirline() const {
     return airline;
@@ -83,7 +85,7 @@ QString Flight::toString() const {
         .arg(departureTime)
         .arg(arrivalCity)
         .arg(arrivalTime)
-        .arg(QString::number(price))  // 将 double 转换为 QString
+        .arg(QString::number(price))
         .arg(QString::number(remainSeatNum));
 }
 
@@ -101,8 +103,14 @@ QString Flight::showInfo() {
 }
 
 bool Flight::operator == (const Flight& other) const {
-  return airline == other.airline && flightNumber == other.flightNumber &&
-         departureCity == other.departureCity &&
-         departureTime == other.departureTime &&
-         arrivalCity == other.arrivalCity && arrivalTime == other.arrivalTime;
+    return airline == other.airline &&
+        flightNumber == other.flightNumber &&
+        departureCity == other.departureCity &&
+        departureTime == other.departureTime &&
+        arrivalCity == other.arrivalCity &&
+        arrivalTime == other.arrivalTime;
+}
+
+bool Flight::operator != (const Flight& other) const {
+    return !(*this == other);
 }

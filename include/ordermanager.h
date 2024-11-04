@@ -12,6 +12,6 @@ public:
     QList<Order>& getOrders();
     void addOrder(const Order& order);
     void modifyOrder(int index, const Order& newOrder);
-    bool saveOrdersToFile(const QString& filePath);
-    void loadOrdersFromFile(const QString& filePath);
+    bool saveOrdersToJsonFile(const QString& filePath);
+    void loadOrdersFromJsonFile(const QString& filePath);
 };

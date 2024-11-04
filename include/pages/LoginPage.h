@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include "flight_ticket_management_system.h"
+#include "qpushbutton.h"
 
 namespace Ui {
 class LoginPage;
@@ -25,6 +26,7 @@ private:
     Flight_Ticket_Management_System *mainWindow;
     int loginAttempts = 0;
     static const int MAX_LOGIN_ATTEMPTS = 3;
+    QAction *toggleAction;
 
 private slots:
     void Login();
@@ -32,6 +34,7 @@ private slots:
     void changePsw();
     void showChangePasswordDialog();
     bool updatePassword(const QString &newPassword, const QString &confirmPassword);
+    void togglePasswordVisibility();
 
 
 
