@@ -13,10 +13,14 @@ CONFIG += c++17
 INCLUDEPATH += $$PWD/lib/
 
 HEADERS += \
-    $$PWD/lib/QRCodeGenerator/qrcodegen.h
+    $$PWD/lib/QRCodeGenerator/qrcodegen.h \
+    widgets/CitySelectionDialog.h \
+    widgets/SearchableComboBox.h
 
 SOURCES += \
-    $$PWD/lib/QRCodeGenerator/qrcodegen.cpp
+    $$PWD/lib/QRCodeGenerator/qrcodegen.cpp \
+    widgets/CitySelectionDialog.cpp \
+    widgets/SearchableComboBox.cpp
 
 
 # 添加源文件路径

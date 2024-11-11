@@ -6,6 +6,7 @@
 #include <QTableWidget>
 #include <QHeaderView>
 #include <QMessageBox>
+#include <QMenu>
 
 
 UserPage::UserPage(Flight_Ticket_Management_System *mainWindow, QWidget *parent)
@@ -17,6 +18,7 @@ UserPage::UserPage(Flight_Ticket_Management_System *mainWindow, QWidget *parent)
     connect(ui->Orders, &QTabWidget::currentChanged, this, &UserPage::onTabChanged);
     connect(ui->domMapBtn, &QPushButton::released, this, &UserPage::showDomesticMap);
     connect(ui->glbMapBtn, &QPushButton::released, this, &UserPage::showGlobalMap);
+    connect(ui->clearBtn, &QPushButton::released, this, &UserPage::clearAllRecord);
 }
 
 UserPage::~UserPage() {
@@ -116,6 +118,8 @@ void UserPage::initOrderTab() {
     allOrdersTab->setLayout(allOrdersLayout);
 
     displayOrders(ui->Orders, "已支付");
+    // 创建右键菜单
+    createContextMenu();
 }
 
 void UserPage::onTabChanged(int index) {
@@ -211,6 +215,72 @@ void UserPage::handleReschedule(const QString& orderId) {
     if (!orderFound) {
         QMessageBox::warning(this, "错误", "未找到订单！");
     }
+}
+
+void UserPage::clearAllRecord() {
+    QTabWidget *tabWidget = ui->Orders;
+    if (tabWidget->currentIndex() == 1) {
+        displayOrders(tabWidget, "exception");
+        QMessageBox::information(this, "删除成功", "已删除所有订单记录！");
+    } else {
+        return;
+    }
+    mainWindow->orderManager.clear();
+
+    QString filePath = ORDER_PATH + mainWindow->currentUserId + ".json";
+    clearJsonFile(filePath);
+}
+
+void UserPage::createContextMenu() {
+    QMenu *contextMenu = new QMenu(this);
+    QAction *deleteAction = new QAction("删除订单", this);
+    contextMenu->addAction(deleteAction);
+
+    connect(deleteAction, &QAction::triggered, this, &UserPage::deleteOrder);
+
+    allOrdersTreeWidget->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(allOrdersTreeWidget, &QTreeWidget::customContextMenuRequested, [this, contextMenu](const QPoint&pos) {
+        QTreeWidgetItem *item = allOrdersTreeWidget->itemAt(pos);
+        if (item) {
+            contextMenu->exec(allOrdersTreeWidget->viewport()->mapToGlobal(pos));
+        }
+    });
+}
+
+void UserPage::deleteOrder() {
+    QTreeWidgetItem *currentItem = allOrdersTreeWidget->currentItem();
+    if (!currentItem) {
+        QMessageBox::warning(this, "错误", "未选择订单！");
+        return;
+    }
+
+    QString orderId = currentItem->text(0);
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this, "确认删除", "您确定要删除此订单吗？",
+                                  QMessageBox::Yes | QMessageBox::No);
+
+    if (reply == QMessageBox::Yes) {
+        auto &orders = mainWindow->orderManager.getOrders();
+        auto it = std::remove_if(orders.begin(), orders.end(), [&orderId](const Order&order) {
+            return order.getOrderId() == orderId;
+        });
+
+        if (it != orders.end()) {
+            orders.erase(it, orders.end());
+
+            QString filePath = ORDER_PATH + mainWindow->currentUserId + ".json";
+            if (!mainWindow->orderManager.saveOrdersToJsonFile(filePath)) {
+                QMessageBox::warning(this, "错误", "保存订单失败！");
+                return;
+            }
+
+            displayOrders(ui->Orders, "");
+            QMessageBox::information(this, "删除成功", "订单已成功删除！");
+        } else {
+            QMessageBox::warning(this, "错误", "未找到订单！");
+        }
+    }
+
 }
 
 

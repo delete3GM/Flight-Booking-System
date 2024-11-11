@@ -52,7 +52,7 @@
    <item row="0" column="3">
     <widget class="QPushButton" name="backUserBtn">
      <property name="text">
-      <string>back</string>
+      <string>返回</string>
      </property>
     </widget>
    </item>

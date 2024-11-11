@@ -9,6 +9,7 @@
 #include "qtimer.h"
 #include <QDateTime>
 
+QSet<QString> Utils::foreignCities = {"伦敦","纽约","莫斯科","悉尼","东京","巴黎"};
 
 QTextStream* LoadFlightFile(const QString& filename) {
     QFile* flight_file = new QFile(filename);
@@ -98,3 +99,17 @@ void showQRCode(QString text) {
     QTimer::singleShot(6000, dialog, &QDialog::accept);
     dialog->exec();
 }
+
+void clearJsonFile(const QString &filePath) {
+    QFile file(filePath);
+    if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        file.close();
+    } else {
+        qWarning("Could not open file for writing: %s", qPrintable(file.errorString()));
+    }
+}
+
+
+
+
+

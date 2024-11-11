@@ -403,9 +403,15 @@ svg.leaflet-image-layer.leaflet-interactive path {
 	}
 
 /* Default icon URLs */
-.leaflet-default-icon-path { /* used only in path-guessing heuristic, see L.Icon.Default */
+/* .leaflet-default-icon-path { 
+	used only in path-guessing heuristic, see L.Icon.Default
 	background-image: url(images/marker-icon.png);
-	}
+	} */
+/* Default icon URLs */
+.leaflet-default-icon-path {
+	background-image: url(https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/images/marker-icon.png);
+}
+
 
 
 /* attribution and scale controls */

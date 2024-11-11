@@ -36,20 +36,27 @@
             maxZoom: 19
         });
         map.addLayer(layer);
-
-        // 存储当前所有的测地线
         var geodesicLines = [];
 
-        // 定义一个清除所有测地线的函数
+        // 清除所有测地线
         function clearGeodesicLines() {
             geodesicLines.forEach(function(line) {
                 map.removeLayer(line); // 从地图上移除线
             });
-            geodesicLines = []; // 清空数组
+            geodesicLines = [];
         }
 
-        // 修改的 drawGeodesicLine 函数，在调用时先清除旧的测地线
         function drawGeodesicLine(x1, y1, x2, y2, description) {
+        // 添加起点标记
+            const startMarker = L.marker([x1, y1]).addTo(map)
+                .bindPopup('起点') // 绑定弹出框内容
+                .openPopup(); // 打开弹出框
+
+            // 添加终点标记
+            const endMarker = L.marker([x2, y2]).addTo(map)
+                .bindPopup('终点') // 绑定弹出框内容
+                .openPopup(); // 打开弹出框
+
             const loc1 = new L.LatLng(x1, y1);
             const loc2 = new L.LatLng(x2, y2);
             const geodesic = new L.Geodesic([loc1, loc2]).addTo(map);
@@ -59,7 +66,7 @@
 
             // 添加鼠标悬停事件，显示描述信息并改变样式
             geodesic.on('mouseover', function () {
-                geodesic.setStyle({ color: 'red', weight: 4 }); // 鼠标悬停时的颜色和粗细
+                geodesic.setStyle({ color: 'blue', weight: 5 }); // 鼠标悬停时的颜色和粗细
                 L.popup()
                     .setLatLng([(x1 + x2) / 2, (y1 + y2) / 2]) // 弹出框显示在两点中间
                     .setContent(description) // 设置弹出框的内容

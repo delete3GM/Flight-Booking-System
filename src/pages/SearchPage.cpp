@@ -1,6 +1,8 @@
 #include "pages/SearchPage.h"
 #include <QEvent.h>
 #include "ui_searchpage.h"
+#include "widgets/CitySelectionDialog.h"
+#include "widgets/SearchableComboBox.h"
 #include <QMessageBox>
 #include <QProcess>
 #include <QSocketNotifier>
@@ -18,6 +20,11 @@ SearchPage::SearchPage(Flight_Ticket_Management_System *mainWindow, QWidget *par
     connect(ui->exchangeBtn, SIGNAL(released()), this, SLOT(Exchange()));
     connect(ui->searchBtn, SIGNAL(released()),this,SLOT(searchFlights()));
     connect(ui->showCalendarBtn, SIGNAL(released()), this, SLOT(showCalendar()));
+
+    //connect(ui->depBtn, SIGNAL(clicked()), this, SLOT(depBox_clicked()));
+
+    //connect(depComboBox, &SearchableComboBox::currentIndexChanged, this, &SearchPage::getDep);
+    //connect(arrComboBox, &SearchableComboBox::currentIndexChanged, this, &SearchPage::getArr);
 }
 
 SearchPage::~SearchPage() {
@@ -25,45 +32,68 @@ SearchPage::~SearchPage() {
 }
 
 void SearchPage::initSearchPage() {
+    //depComboBox = new SearchableComboBox(this);
+    //arrComboBox = new SearchableComboBox(this);
+    //depComboBox->setGeometry(50, 50, 200, 80); // x, y, width, height
+    //arrComboBox->setGeometry(150, 100, 200, 80); // x, y, width, height
     mainWindow->network.clearData();
     mainWindow->network.readFlightFromFile(FLIGHT_FILE);
-    initializeDepBox();
-    initializeArrBox();
     ui->calendarWidget->hide();
 
-    connect(this, &SearchPage::pythonScriptOutputReceived, this, &SearchPage::updateDepWeather);
-    callPythonScript(mainWindow->depCity);
+    initializeDepBox();
+    initializeArrBox();
 
-    connect(this, &SearchPage::pythonScriptOutputReceived, this, &SearchPage::updateArrWeather);
-    callPythonScript(mainWindow->arrCity);
+    updateDepWeather();
+    updateArrWeather();
+
+    //loadCitiesIntoSearchableBoxes();
 }
 
-void SearchPage::callPythonScript(const QString &city) {
-    QProcess *process = new QProcess(this);
-    QString program = "D:/CS/projects/Flight_Ticket_Management_System/scripts/weather.exe";
-    QStringList arguments;
-    arguments << city;
-
-    process->start(program, arguments);
-
-    connect(process, &QProcess::readyReadStandardOutput, this, [this, process]() {
-        QByteArray outputBytes = process->readAllStandardOutput();
-        QString output = QString::fromLocal8Bit(outputBytes);
-        qDebug() << "Output from Python executable:" << output;
-
-        emit pythonScriptOutputReceived(output);
-    });
-    connect(process, &QProcess::finished, this, [process]() {
-        process->deleteLater();
-    });
+void SearchPage::loadCitiesIntoSearchableBoxes() {
+    // QVector<QString> cityNames = mainWindow->network.getAllCityNames();
+    // for (const QString &cityName : cityNames) {
+    //     qDebug()<<"11";
+    //     depComboBox->addItem(cityName);
+    //     qDebug()<<"11";
+    //     arrComboBox->addItem(cityName);
+    //     qDebug()<<cityName;
+    // }
+    // qDebug()<<"agreer";
+    // if (!cityNames.isEmpty()) {
+    //     depComboBox->setCurrentIndex(0);
+    //     arrComboBox->setCurrentIndex(0);
+    // }
+    // qDebug()<<"agreer";
+    // mainWindow->depCity = depComboBox->currentText();
+    // mainWindow->arrCity = arrComboBox->currentText();
 }
 
-void SearchPage::updateDepWeather(const QString &output) {
-    ui->depWeather->setText(output);
+void SearchPage::updateDepWeather() {
+    if (mainWindow->cityInfoMap.contains(mainWindow->depCity)) {
+        CityInfo info = mainWindow->cityInfoMap.value(mainWindow->depCity);
+        QString weatherInfo = QString("城市: %1\n天气: %2\n温度: %3℃\n风力: %4级")
+                                  .arg(mainWindow->depCity)
+                                  .arg(info.weather)
+                                  .arg(info.temperature)
+                                  .arg(info.wind);
+        ui->depWeather->setText(weatherInfo);
+    } else {
+        //ui->depWeather->setText("暂不支持国外城市");
+    }
 }
 
-void SearchPage::updateArrWeather(const QString &output) {
-    ui->arrWeather->setText(output);
+void SearchPage::updateArrWeather() {
+    if (mainWindow->cityInfoMap.contains(mainWindow->arrCity)) {
+        CityInfo info = mainWindow->cityInfoMap.value(mainWindow->arrCity);
+        QString weatherInfo = QString("城市: %1\n天气: %2\n温度: %3℃\n风力: %4级")
+                                  .arg(mainWindow->arrCity)
+                                  .arg(info.weather)
+                                  .arg(info.temperature)
+                                  .arg(info.wind);
+        ui->arrWeather->setText(weatherInfo);
+    } else {
+        //ui->arrWeather->setText("暂不支持国外城市");
+    }
 }
 
 void SearchPage::Back() {
@@ -79,6 +109,7 @@ void SearchPage::initializeDepBox() {
         ui->depBox->setCurrentIndex(0);
     }
     mainWindow->depCity = ui->depBox->itemText(0);
+    //mainWindow->cities = mainWindow->network.getAllCityNames();
 }
 
 void SearchPage::initializeArrBox() {
@@ -90,6 +121,25 @@ void SearchPage::initializeArrBox() {
         ui->arrBox->setCurrentIndex(0);
     }
     mainWindow->arrCity = ui->arrBox->itemText(0);
+}
+
+
+void SearchPage::depBox_clicked() {
+    // // 创建并显示CitySelectionDialog
+    // CitySelectionDialog dialog(mainWindow->network.getAllCityNames(), this);
+    // // 获取按钮的位置
+    // QPoint buttonPos = ui->depBtn->mapToGlobal(QPoint(0, 0));
+
+    // dialog.move(buttonPos.x(), buttonPos.y() + ui->depBtn->height());
+
+    // connect(&dialog, &CitySelectionDialog::citySelected, this, &SearchPage::updateDepCity);
+    // dialog.exec();
+}
+
+void SearchPage::updateDepCity(const QString& city) {
+    mainWindow->depCity = city;
+    ui->depBox->setCurrentText(city);
+    updateDepWeather();
 }
 
 void SearchPage::showCalendar() {
@@ -113,25 +163,19 @@ void SearchPage::mousePressEvent(QMouseEvent *event) {
     }
     QWidget::mousePressEvent(event);
 }
+
 void SearchPage::getDep(int index) {
     QString selectedOption = ui->depBox->itemText(index);
     qDebug() << "Selected departure option:" << selectedOption;
     mainWindow->depCity = selectedOption;
-    QString cityName = mainWindow->depCity;
-    disconnect(this, &SearchPage::pythonScriptOutputReceived, this, &SearchPage::updateArrWeather);
-    connect(this, &SearchPage::pythonScriptOutputReceived, this, &SearchPage::updateDepWeather);
-
-    callPythonScript(cityName);
+    updateDepWeather();
 }
 
 void SearchPage::getArr(int index) {
     QString selectedOption = ui->arrBox->itemText(index);
     qDebug() << "Selected arrival option:" << selectedOption;
     mainWindow->arrCity = selectedOption;
-    QString cityName = mainWindow->arrCity;
-    disconnect(this, &SearchPage::pythonScriptOutputReceived, this, &SearchPage::updateDepWeather);
-    connect(this, &SearchPage::pythonScriptOutputReceived, this, &SearchPage::updateArrWeather);
-    callPythonScript(cityName);
+    updateArrWeather();
 }
 
 void SearchPage::Exchange() {
@@ -187,4 +231,5 @@ void SearchPage::setDataForReschedule(const QString& dep, const QString& arr, co
     ui->showCalendarBtn->setText("");
     ui->showCalendarBtn->setText(date.toString("yyyy-MM-dd"));
 }
+
 

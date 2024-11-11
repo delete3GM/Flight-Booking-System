@@ -18,11 +18,20 @@ QString getPasswordById(const QString &id);
 QImage GenerateQRCodeImage(const QString& text);
 void showQRCode(QString text);
 
-#define USER_FILE                           "D:/CS/projects/Flight_Ticket_Management_System/data/user/user.txt"
-#define FLIGHT_FILE							"D:/CS/projects/Flight_Ticket_Management_System/data/flight/flight_data.txt"
-#define ORDER_PATH                          "D:/CS/projects/Flight_Ticket_Management_System/data/order/"
+void clearJsonFile(const QString &filePath);
 
-#define MAX_DEPTH                            3
+#define USER_FILE                           "D:/CS/projects/Flight_Ticket_Management_System/data/user/user.txt"
+#define FLIGHT_FILE							"D:/CS/projects/Flight_Ticket_Management_System/data/flight/flight_data_new.txt"
+#define ORDER_PATH                          "D:/CS/projects/Flight_Ticket_Management_System/data/order/"
+#define CITY_FILE                           "D:/CS/projects/Flight_Ticket_Management_System/data/flight/city_info.csv"
+#define PYTHON_FILE                         "D:/CS/projects/Flight_Ticket_Management_System/data/flight/get_weather_info.exe"
+
+#define MAX_DEPTH                           3
+class Utils {
+public:
+    static QSet<QString> foreignCities; // 声明
+};
+
 
 typedef enum Sort_Type {
     SORT_NORMAL,											// 默认排序
@@ -39,4 +48,12 @@ typedef enum _tagFlightStatus {
 	STATUS_COUNT
 
 } FLIGHT_STATUS;
+
+struct CityInfo {
+    double latitude;
+    double longitude;
+    QString weather;
+    QString temperature;
+    QString wind;
+};
 

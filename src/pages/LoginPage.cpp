@@ -1,9 +1,13 @@
+#include "qprocess.h"
 #include "ui_loginpage.h"
 #include "pages/LoginPage.h"
+#include "flight_ticket_management_system.h"
 #include <QMessageBox>
 #include <QRegularExpressionValidator>
 #include "Utils.h"
 #include <QVBoxLayout>
+#include <QFileInfo>
+#include <QDir>
 
 LoginPage::LoginPage(Flight_Ticket_Management_System *mainWindow, QWidget *parent)
     : QWidget(parent), ui(new Ui::LoginPage), mainWindow(mainWindow) {
@@ -16,7 +20,6 @@ LoginPage::LoginPage(Flight_Ticket_Management_System *mainWindow, QWidget *paren
 
     toggleAction = ui->typePsw->addAction(QIcon(":/images/resources/images/eye_close.png"), QLineEdit::TrailingPosition);
     connect(toggleAction, &QAction::triggered, this, &LoginPage::togglePasswordVisibility);
-
 }
 
 LoginPage::~LoginPage() {
@@ -24,6 +27,8 @@ LoginPage::~LoginPage() {
 }
 
 void LoginPage::initLoginPage() {
+    QString scriptPath = PYTHON_FILE;
+    executePythonScript(scriptPath);
     ui->typeAcnt->clear();
     ui->typePsw->clear();
     ui->typeAcnt->setFocusPolicy(Qt::ClickFocus);
@@ -36,6 +41,8 @@ void LoginPage::initLoginPage() {
         QRegularExpression("^[1-9]\\d{5}(18|19|20)\\d{2}((0[1-9])|(10|11|12))(([0-2][1-9])|10|20|30|31)\\d{3}[0-9Xx]$"), this);
     ui->typeAcnt->setValidator(validator);
     ui->changePswBtn->setText("<a href='#'>忘记密码？</a>");
+    loadCityInfo();
+    //this->setStyleSheet("border-image: url(:/images/resources/images/background.png);");
 }
 
 QString LoginPage::getID() const {
@@ -280,3 +287,51 @@ void LoginPage::togglePasswordVisibility() {
         toggleAction->setIcon(QIcon(pixmap));
     }
 }
+
+void LoginPage::executePythonScript(const QString &scriptPath) {
+    QProcess *process = new QProcess();
+    QFileInfo exeFileInfo(scriptPath);
+    if (!exeFileInfo.exists() || !exeFileInfo.isFile()) {
+        qWarning() << "Executable file does not exist or is not a file:" << scriptPath;
+        delete process;
+        return;
+    }
+    process->setProgram(scriptPath);
+    process->setWorkingDirectory(exeFileInfo.dir().path());
+    process->start();
+
+    if (!process->waitForFinished()) {
+        qWarning() << "Error:" << process->errorString();
+    } else {
+        //qDebug() << "Process finished successfully.";
+    }
+    connect(process, &QProcess::finished, process, &QProcess::deleteLater);
+}
+
+void LoginPage::loadCityInfo() {
+    QFile file(CITY_FILE);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        qDebug() << "无法打开文件";
+        return;
+    }
+    QTextStream in(&file);
+    while (!in.atEnd()) {
+        QString line = in.readLine();
+        QStringList parts = line.split(",");
+
+        if (parts.size() >= 6) {
+            QString cityName = parts[0].trimmed();
+            CityInfo info;
+            info.latitude = parts[1].trimmed().toDouble();
+            info.longitude = parts[2].trimmed().toDouble();
+            info.weather = parts[3].trimmed();
+            info.temperature = parts[4].trimmed();
+            info.wind = parts[5].trimmed();
+
+            mainWindow->cityInfoMap.insert(cityName, info);
+        }
+    }
+    file.close();
+}
+
+

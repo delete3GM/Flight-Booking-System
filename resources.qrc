@@ -4,5 +4,6 @@
         <file>resources/images/eye_open.png</file>
         <file>resources/images/earth.png</file>
         <file>resources/images/exchange.png</file>
+        <file>resources/images/background.png</file>
     </qresource>
 </RCC>

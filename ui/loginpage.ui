@@ -25,6 +25,9 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true"/>
+  </property>
   <widget class="QLineEdit" name="typeAcnt">
    <property name="geometry">
     <rect>
@@ -86,6 +89,9 @@
     <font>
      <pointsize>25</pointsize>
     </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true"/>
    </property>
    <property name="text">
     <string>机票预订系统</string>
@@ -234,12 +240,12 @@ QPushButton:pressed {
   <zorder>label</zorder>
   <zorder>typePsw</zorder>
   <zorder>typeAcnt</zorder>
-  <zorder>loginTitleLbl</zorder>
   <zorder>loginBtn</zorder>
   <zorder>signupBtn</zorder>
   <zorder>changePswBtn</zorder>
   <zorder>IDlbl</zorder>
   <zorder>pswLbl</zorder>
+  <zorder>loginTitleLbl</zorder>
  </widget>
  <resources/>
  <connections/>

@@ -3,7 +3,6 @@
 
 #include <QWidget>
 #include "flight_ticket_management_system.h"
-#include "qpushbutton.h"
 
 namespace Ui {
 class LoginPage;
@@ -20,6 +19,11 @@ public:
     QString getPassword() const;
     void writeUserToFile(const QString& filename);
     bool isUserRegistered(const QString& id, const QString& psw);
+    void loadCityInfo();
+    void executePythonScript(const QString &scriptPath);
+
+
+
 
 private:
     Ui::LoginPage *ui;

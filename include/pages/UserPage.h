@@ -15,6 +15,7 @@ class UserPage : public QWidget {
 public:
     explicit UserPage(Flight_Ticket_Management_System *mainWindow, QWidget *parent = nullptr);
     ~UserPage();
+    void createContextMenu();
 
 
 private:
@@ -32,6 +33,8 @@ private slots:
     void showGlobalMap();
     void handleRefund(const QString& orderId);
     void handleReschedule(const QString& orderId);
+    void clearAllRecord();
+    void deleteOrder();
 };
 
 #endif // USERPAGE_H

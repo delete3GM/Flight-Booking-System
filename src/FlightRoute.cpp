@@ -68,20 +68,6 @@ int FlightRoute::getTransferCount() const {
     return flights.size() - 1;
 }
 
-Flight* FlightRoute::first() const {
-    if (flights.isEmpty()) {
-        return nullptr;
-    }
-    return flights.first();
-}
-
-Flight* FlightRoute::last() const {
-    if (flights.isEmpty()) {
-        return nullptr;
-    }
-    return flights.last();
-}
-
 bool FlightRoute::isEmpty() const {
     return flights.isEmpty();
 }
@@ -90,6 +76,16 @@ void FlightRoute::removeLast() {
     if (!flights.isEmpty()) {
         flights.removeLast();
     }
+}
+
+bool FlightRoute::isDomestic() const{
+    for (Flight* flight : flights) {
+        if (Utils::foreignCities.contains(flight->getDepartureCity()) ||
+            Utils::foreignCities.contains(flight->getArrivalCity())) {
+            return false;
+        }
+    }
+    return true;
 }
 
 QString FlightRoute::showCityPath() const {
@@ -117,23 +113,18 @@ QString FlightRoute::showFlightsInfo() const {
     return flightInfo;
 }
 
-Flight* FlightRoute::operator[](int index) const {
-    if (index < 0 || index >= flights.size()) {
+Flight* FlightRoute::first() const {
+    if (flights.isEmpty()) {
         return nullptr;
     }
-    return flights[index];
+    return flights.first();
 }
 
-bool FlightRoute::operator==(const FlightRoute& other) const {
-    if (flights.size() != other.flights.size()) {
-        return false;
+Flight* FlightRoute::last() const {
+    if (flights.isEmpty()) {
+        return nullptr;
     }
-    for (int i = 0; i < flights.size(); ++i) {
-        if (*flights[i] != *other.flights[i]) {
-            return false;
-        }
-    }
-    return true;
+    return flights.last();
 }
 
 QVector<Flight*>::iterator FlightRoute::begin() {
@@ -161,6 +152,25 @@ FlightRoute& FlightRoute::operator=(const FlightRoute& other) {
         }
     }
     return *this;
+}
+
+Flight* FlightRoute::operator[](int index) const {
+    if (index < 0 || index >= flights.size()) {
+        return nullptr;
+    }
+    return flights[index];
+}
+
+bool FlightRoute::operator==(const FlightRoute& other) const {
+    if (flights.size() != other.flights.size()) {
+        return false;
+    }
+    for (int i = 0; i < flights.size(); ++i) {
+        if (*flights[i] != *other.flights[i]) {
+            return false;
+        }
+    }
+    return true;
 }
 
 

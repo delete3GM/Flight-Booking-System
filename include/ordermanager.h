@@ -14,4 +14,5 @@ public:
     void modifyOrder(int index, const Order& newOrder);
     bool saveOrdersToJsonFile(const QString& filePath);
     void loadOrdersFromJsonFile(const QString& filePath);
+    void clear();
 };

@@ -85,7 +85,13 @@
             }
         }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
 
-        //drawPolyline(116.4074, 39.9042, -74.0060, 40.7128, '航班：北京到纽约');
+        window.clearPolylines = function () {
+                // 遍历所有实体，删除与航线相关的实体
+                viewer.entities.removeAll(function (entity) {
+                    return entity.id && entity.id.startsWith('flightPolyline-');
+                });
+                console.log('All flight polylines cleared');
+            };
 
     </script>
 </body>

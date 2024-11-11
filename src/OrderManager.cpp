@@ -7,6 +7,10 @@
 #include <QJsonArray>
 #include <QJsonObject>
 
+void OrderManager::clear() {
+    orders.clear();
+}
+
 QList<Order>& OrderManager::getOrders() {
     return this->orders;
 }

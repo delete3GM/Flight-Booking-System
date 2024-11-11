@@ -27,9 +27,11 @@ void MapPage::map2user() {
 
 void MapPage::initWebEngine() {
     if(mainWindow->map_type == Flight_Ticket_Management_System::DOMESTIC) {
-        ui->webEngineView->setUrl(QUrl::fromLocalFile("D:/CS/projects/Flight_Ticket_Management_System/web/html/domestic_routes.html"));
+        ui->webEngineView->setUrl(QUrl::fromLocalFile(
+            "D:/CS/projects/Flight_Ticket_Management_System/web/html/domestic_routes.html"));
     } else {
-        ui->webEngineView->setUrl(QUrl::fromLocalFile("D:/CS/projects/Flight_Ticket_Management_System/web/html/global_routes.html"));
+        ui->webEngineView->setUrl(QUrl::fromLocalFile(
+            "D:/CS/projects/Flight_Ticket_Management_System/web/html/global_routes.html"));
     }
     configureWebEngine();
 }
@@ -58,26 +60,27 @@ void MapPage::configureWebEngine() {
 }
 
 void MapPage::initMapPage() {
-    QDate specificStartDate(2024, 1, 1); // 设置开始日期为2024年1月1日
-    QDate specificEndDate(2024, 12, 31);   // 设置结束日期为2024年1月31日
-    ui->startDateEdit->setDate(specificStartDate); // 设置开始日期
-    ui->endDateEdit->setDate(specificEndDate);     // 设置结束日期
     initWebEngine();
+    QDate specificStartDate(2024, 1, 1);
+    QDate specificEndDate(2024, 12, 31);
+    ui->airlineComb->setMinimumWidth(300);
+    ui->startDateEdit->setDate(specificStartDate);
+    ui->endDateEdit->setDate(specificEndDate);
     showMap();
 }
 
 void MapPage::showMap() {
-    filterFlights();
     connect(ui->webEngineView, &QWebEngineView::loadFinished, this,
             [&](bool load) {
                 if (load) {
+                    filterFlights();
                     displayMap(0);
                 }
             });
 }
 
 void MapPage::displayMap(int index) {
-    if (index < 0 || index >= addedOrders.size()) {
+    if (index < 0 || index > addedOrders.size()) {
         return;
     }
     if (mainWindow->map_type == Flight_Ticket_Management_System::DOMESTIC) {
@@ -87,101 +90,86 @@ void MapPage::displayMap(int index) {
     }
 }
 
+void MapPage::drawFlightRoutesLeaflet(const FlightRoute& flightRoute) {
+
+    for (const Flight* flight : flightRoute) {
+        QString depCity = flight->getDepartureCity();
+        QString arrCity = flight->getArrivalCity();
+
+        const CityInfo& departureInfo = mainWindow->cityInfoMap.value(depCity, {0, 0, "", "", ""});
+        const CityInfo& arrivalInfo = mainWindow->cityInfoMap.value(arrCity, {0, 0, "", "", ""});
+
+        double depCity_x = departureInfo.latitude;
+        double depCity_y = departureInfo.longitude;
+        double arrCity_x = arrivalInfo.latitude;
+        double arrCity_y = arrivalInfo.longitude;
+        QString flightInfo = flight->getAirline() + " " + flight->getFlightNumber();
+
+        QString jsCode = QString("drawGeodesicLine(%1, %2, %3, %4, '%5');")
+                             .arg(depCity_x)
+                             .arg(depCity_y)
+                             .arg(arrCity_x)
+                             .arg(arrCity_y)
+                             .arg(flightInfo);
+
+        ui->webEngineView->page()->runJavaScript(jsCode);
+    }
+
+}
+
 void MapPage::processLeafletMap(int index, QList<Order> orders) {
     ui->webEngineView->page()->runJavaScript("clearGeodesicLines()");
-    if (index == 0) { // 显示所有航线
+
+    if (index == 0) {
         for (const auto& order : orders) {
-            const FlightRoute& flightRoute = order.getFlightRoute();
-            for (const Flight* flight : flightRoute) {
-                QString depCity = flight->getDepartureCity();
-                QString arrCity = flight->getArrivalCity();
-                float depCity_x = cityCoordinates.value(depCity, {0, 0}).first;
-                float depCity_y = cityCoordinates.value(depCity, {0, 0}).second;
-                float arrCity_x = cityCoordinates.value(arrCity, {0, 0}).first;
-                float arrCity_y = cityCoordinates.value(arrCity, {0, 0}).second;
-                QString flightInfo = flight->getAirline() + " " + flight->getFlightNumber();
-                QString jsCode = QString("drawGeodesicLine(%1, %2, %3, %4, '%5');")
-                                     .arg(depCity_x)
-                                     .arg(depCity_y)
-                                     .arg(arrCity_x)
-                                     .arg(arrCity_y)
-                                     .arg(flightInfo);
-                ui->webEngineView->page()->runJavaScript(jsCode);
-            }
+            drawFlightRoutesLeaflet(order.getFlightRoute());
         }
     } else {
         const Order& order = orders.at(index - 1);
-        qDebug()<<order.getFlightRoute().showCityPath();
-        const FlightRoute& flightRoute = order.getFlightRoute();
-        for (const Flight* flight : flightRoute) {
-            QString depCity = flight->getDepartureCity();
-            QString arrCity = flight->getArrivalCity();
-            float depCity_x = cityCoordinates.value(depCity, {0, 0}).first;
-            float depCity_y = cityCoordinates.value(depCity, {0, 0}).second;
-            float arrCity_x = cityCoordinates.value(arrCity, {0, 0}).first;
-            float arrCity_y = cityCoordinates.value(arrCity, {0, 0}).second;
-            QString flightInfo = flight->getAirline() + " " + flight->getFlightNumber();
-            QString jsCode = QString("drawGeodesicLine(%1, %2, %3, %4, '%5');")
-                                 .arg(depCity_x)
-                                 .arg(depCity_y)
-                                 .arg(arrCity_x)
-                                 .arg(arrCity_y)
-                                 .arg(flightInfo);
-            ui->webEngineView->page()->runJavaScript(jsCode);
-            }
+        qDebug() << order.getFlightRoute().showCityPath();
+        drawFlightRoutesLeaflet(order.getFlightRoute());
     }
 }
 
-void MapPage::processCesiumMap(int index, QList<Order> orders) {
-    if (index == 0) {
-        for (const auto& order : orders) {
-
-            const FlightRoute& flightRoute = order.getFlightRoute();
-            for (const Flight* flight : flightRoute) {
-                QString depCity = flight->getDepartureCity();
-                QString arrCity = flight->getArrivalCity();
-                float depCity_x = cityCoordinates.value(depCity, {0, 0}).first;
-                float depCity_y = cityCoordinates.value(depCity, {0, 0}).second;
-                float arrCity_x = cityCoordinates.value(arrCity, {0, 0}).first;
-                float arrCity_y = cityCoordinates.value(arrCity, {0, 0}).second;
-                QString flightInfo = flight->getAirline() + " " + flight->getFlightNumber();
-
-                QString jsCode = QString("drawPolyline(%1, %2, %3, %4, '%5');")
-                                     .arg(depCity_x)
-                                     .arg(depCity_y)
-                                     .arg(arrCity_x)
-                                     .arg(arrCity_y)
-                                     .arg(flightInfo);
-                ui->webEngineView->page()->runJavaScript(jsCode, [](const QVariant &result) {
-                    std::cout << "JavaScript execution result: "
-                              << result.toString().toStdString();
-                });
-            }
-        }
-    } else {
-        const Order& order = orders.at(index - 1);
-        //ui->webEngineView->page()->runJavaScript("clearGeodesicLines()");
-        const FlightRoute& flightRoute = order.getFlightRoute();
+void MapPage::drawFlightRoutesCesium(const FlightRoute& flightRoute) {
+    if(!flightRoute.isDomestic()){
         for (const Flight* flight : flightRoute) {
             QString depCity = flight->getDepartureCity();
             QString arrCity = flight->getArrivalCity();
-            float depCity_x = cityCoordinates.value(depCity, {0, 0}).first;
-            float depCity_y = cityCoordinates.value(depCity, {0, 0}).second;
-            float arrCity_x = cityCoordinates.value(arrCity, {0, 0}).first;
-            float arrCity_y = cityCoordinates.value(arrCity, {0, 0}).second;
+
+            const CityInfo& departureInfo = mainWindow->cityInfoMap.value(depCity, {0, 0, "", "", ""});
+            const CityInfo& arrivalInfo = mainWindow->cityInfoMap.value(arrCity, {0, 0, "", "", ""});
+
+            double depCity_x = departureInfo.longitude;
+            double depCity_y = departureInfo.latitude;
+            double arrCity_x = arrivalInfo.longitude;
+            double arrCity_y = arrivalInfo.latitude;
             QString flightInfo = flight->getAirline() + " " + flight->getFlightNumber();
+
             QString jsCode = QString("drawPolyline(%1, %2, %3, %4, '%5');")
                                  .arg(depCity_x)
                                  .arg(depCity_y)
                                  .arg(arrCity_x)
                                  .arg(arrCity_y)
                                  .arg(flightInfo);
+
             ui->webEngineView->page()->runJavaScript(jsCode, [](const QVariant &result) {
                 std::cout << "JavaScript execution result: "
                           << result.toString().toStdString();
             });
         }
+    }
+}
 
+void MapPage::processCesiumMap(int index, QList<Order> orders) {
+    ui->webEngineView->page()->runJavaScript("clearPolylines()");
+    if (index == 0) {
+        for (const auto& order : orders) {
+            drawFlightRoutesCesium(order.getFlightRoute());
+        }
+    } else {
+        const Order& order = orders.at(index - 1);
+        drawFlightRoutesCesium(order.getFlightRoute());
     }
 }
 
@@ -198,12 +186,26 @@ void MapPage::filterFlights() {
     auto orders = mainWindow->orderManager.getOrders();
     for (const Order& order : orders) {
         if (order.getStatus() == "已支付") {
-            FlightRoute flightRoute = order.getFlightRoute();
-            QDate firstDepartureDate = QDate::fromString(flightRoute.first()->getDepartureTime().split(" ")[0], "yyyy-MM-dd");
-            QDate lastArrivalDate = QDate::fromString(flightRoute.last()->getArrivalTime().split(" ")[0], "yyyy-MM-dd");
-            if (firstDepartureDate >= startDate && lastArrivalDate <= endDate) {
-                ui->airlineComb->addItem(flightRoute.showCityPath());
-                filteredOrders.append(order);
+            if(mainWindow->map_type == Flight_Ticket_Management_System::DOMESTIC){
+                if(order.getFlightRoute().isDomestic()){
+                    FlightRoute flightRoute = order.getFlightRoute();
+                    QDate firstDepartureDate = QDate::fromString(flightRoute.first()->getDepartureTime().split(" ")[0], "yyyy-MM-dd");
+                    QDate lastArrivalDate = QDate::fromString(flightRoute.last()->getArrivalTime().split(" ")[0], "yyyy-MM-dd");
+                    if (firstDepartureDate >= startDate && lastArrivalDate <= endDate) {
+                        ui->airlineComb->addItem(flightRoute.showCityPath());
+                        filteredOrders.append(order);
+                    }
+                }
+            } else {
+                if(!order.getFlightRoute().isDomestic()){
+                    FlightRoute flightRoute = order.getFlightRoute();
+                    QDate firstDepartureDate = QDate::fromString(flightRoute.first()->getDepartureTime().split(" ")[0], "yyyy-MM-dd");
+                    QDate lastArrivalDate = QDate::fromString(flightRoute.last()->getArrivalTime().split(" ")[0], "yyyy-MM-dd");
+                    if (firstDepartureDate >= startDate && lastArrivalDate <= endDate) {
+                        ui->airlineComb->addItem(flightRoute.showCityPath());
+                        filteredOrders.append(order);
+                    }
+                }
             }
         }
     }

@@ -71,13 +71,10 @@ void FlightNetwork::readFlightFromFile(const QString& file) {
         return;
     }
     while(!stream->atEnd()) {
-        auto lineData = stream->readLine().split(", ", Qt::SkipEmptyParts);
-
-        // 去除每个字段两端的空格
+        auto lineData = stream->readLine().split(",", Qt::SkipEmptyParts);
         for (QString& part : lineData) {
             part = part.trimmed();
         }
-
         int nonEmptyCount = std::count_if(lineData.begin(), lineData.end(), [](const QString &str) {
             return !str.isEmpty();
         });

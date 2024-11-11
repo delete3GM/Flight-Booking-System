@@ -4,6 +4,7 @@
 #include <QWidget>
 #include "flight_ticket_management_system.h"
 #include "qcombobox.h"
+#include "widgets/SearchableComboBox.h"
 
 namespace Ui {
 class SearchPage;
@@ -24,7 +25,9 @@ public:
 
 private:
     Ui::SearchPage *ui;
-    Flight_Ticket_Management_System *mainWindow; // 指向主窗口的指针
+    Flight_Ticket_Management_System *mainWindow;
+    //SearchableComboBox *depComboBox; // 声明出发城市的搜索框
+    //SearchableComboBox *arrComboBox; // 声明到达城市的搜索框
 
 
 private slots:
@@ -34,10 +37,12 @@ private slots:
     void updateButtonWithDate(const QDate &date);
     void Exchange();
     void Back();
-    void callPythonScript(const QString& city);
-    void searchFlights(); 
-    void updateDepWeather(const QString &output);
-    void updateArrWeather(const QString &output);
+    void searchFlights();
+    void updateDepWeather();
+    void updateArrWeather();
+    void depBox_clicked();
+    void updateDepCity(const QString& city);
+    void loadCitiesIntoSearchableBoxes();
 
 protected:
     void mousePressEvent(QMouseEvent *event) override;
