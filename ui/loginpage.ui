@@ -87,7 +87,8 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>25</pointsize>
+     <family>幼圆</family>
+     <pointsize>30</pointsize>
     </font>
    </property>
    <property name="styleSheet">
@@ -172,22 +173,6 @@ QPushButton:pressed {
     <string>注册</string>
    </property>
   </widget>
-  <widget class="QLabel" name="label">
-   <property name="geometry">
-    <rect>
-     <x>240</x>
-     <y>210</y>
-     <width>481</width>
-     <height>271</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel { background-color: lightgray; }</string>
-   </property>
-   <property name="text">
-    <string/>
-   </property>
-  </widget>
   <widget class="QLabel" name="changePswBtn">
    <property name="geometry">
     <rect>
@@ -237,7 +222,6 @@ QPushButton:pressed {
     <string>密码</string>
    </property>
   </widget>
-  <zorder>label</zorder>
   <zorder>typePsw</zorder>
   <zorder>typeAcnt</zorder>
   <zorder>loginBtn</zorder>

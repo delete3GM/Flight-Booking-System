@@ -1,0 +1,84 @@
+[
+    {
+        "cabinClass": "经济舱",
+        "flightRoute": [
+            {
+                "airline": "中国东方航空",
+                "arrivalCity": "南宁",
+                "arrivalTime": "2024-11-01 07:31",
+                "departureCity": "北京",
+                "departureTime": "2024-11-01 05:25",
+                "flightNumber": "MU8677",
+                "price": 1957,
+                "remainSeatNum": 171
+            },
+            {
+                "airline": "中国国际航空",
+                "arrivalCity": "东京",
+                "arrivalTime": "2024-11-01 23:14",
+                "departureCity": "南宁",
+                "departureTime": "2024-11-01 19:54",
+                "flightNumber": "CA4364",
+                "price": 3090,
+                "remainSeatNum": 51
+            }
+        ],
+        "meal": "无餐食",
+        "orderId": "{bd85af34-f1a6-4278-9d28-d530ffd25e30}",
+        "passenger": {
+            "familyName": "trhe",
+            "givenName": "trhe",
+            "id": "rtg",
+            "phone": "thr",
+            "sex": "Female"
+        },
+        "price": 5047,
+        "status": "已支付"
+    },
+    {
+        "cabinClass": "头等舱",
+        "flightRoute": [
+            {
+                "airline": "中国东方航空",
+                "arrivalCity": "呼和浩特",
+                "arrivalTime": "2024-11-01 05:22",
+                "departureCity": "北京",
+                "departureTime": "2024-11-01 04:52",
+                "flightNumber": "MU9237",
+                "price": 463.5,
+                "remainSeatNum": 76
+            },
+            {
+                "airline": "中国国际航空",
+                "arrivalCity": "南宁",
+                "arrivalTime": "2024-11-01 09:54",
+                "departureCity": "呼和浩特",
+                "departureTime": "2024-11-01 07:34",
+                "flightNumber": "CA1112",
+                "price": 2163,
+                "remainSeatNum": 135
+            },
+            {
+                "airline": "中国国际航空",
+                "arrivalCity": "拉萨",
+                "arrivalTime": "2024-11-01 19:53",
+                "departureCity": "南宁",
+                "departureTime": "2024-11-01 16:00",
+                "flightNumber": "CA9379",
+                "price": 3605,
+                "remainSeatNum": 168
+            }
+        ],
+        "meal": "无餐食",
+        "orderId": "{ad668074-8079-418c-8375-f5630479fb68}",
+        "passenger": {
+            "familyName": "trhe",
+            "givenName": "trhe",
+            "id": "rtg",
+            "phone": "thr",
+            "sex": "Female"
+        },
+        "price": 14955.599999999999,
+        "status": "已支付"
+    }
+]

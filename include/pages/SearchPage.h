@@ -4,6 +4,7 @@
 #include <QWidget>
 #include "flight_ticket_management_system.h"
 #include "qcombobox.h"
+#include "qtreewidget.h"
 #include "widgets/SearchableComboBox.h"
 
 namespace Ui {
@@ -17,32 +18,31 @@ public:
     explicit SearchPage(Flight_Ticket_Management_System *mainWindow, QWidget *parent = nullptr);
     ~SearchPage();
     void initSearchPage();
-    void initializeDepBox();
-    void initializeArrBox();
 
     void setDataForReschedule(const QString& dep, const QString& arr, const QDate& date);
     void loadCitiesIntoComboBox(QComboBox* comboBox, const QVector<QString>& cityNames);
+    void loadRecommendation();
+    void displayRecommendation();
+    void addFlightPathToTree(QTreeWidget* treeView, const FlightRoute& flightPath, int& row);
 
 private:
     Ui::SearchPage *ui;
     Flight_Ticket_Management_System *mainWindow;
-    //SearchableComboBox *depComboBox; // 声明出发城市的搜索框
-    //SearchableComboBox *arrComboBox; // 声明到达城市的搜索框
+
+    SearchableComboBox* depComboBox;
+    SearchableComboBox* arrComboBox;
 
 
 private slots:
-    void getDep(int index);
-    void getArr(int index);
     void showCalendar();
     void updateButtonWithDate(const QDate &date);
     void Exchange();
     void Back();
     void searchFlights();
-    void updateDepWeather();
-    void updateArrWeather();
-    void depBox_clicked();
-    void updateDepCity(const QString& city);
-    void loadCitiesIntoSearchableBoxes();
+    void updateCityWeather(QLabel* weatherLabel, const QString& cityName);
+    void onBookButtonClicked(int row);
+    void handleCabinClassSelected(const QString& cabinClass, int row);
+    void showGraph();
 
 protected:
     void mousePressEvent(QMouseEvent *event) override;

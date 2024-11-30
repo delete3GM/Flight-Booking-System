@@ -5,5 +5,18 @@
         <file>resources/images/earth.png</file>
         <file>resources/images/exchange.png</file>
         <file>resources/images/background.png</file>
+        <file>resources/images/business_class.png</file>
+        <file>resources/images/economy_class.png</file>
+        <file>resources/images/first_class.png</file>
+        <file>resources/images/user.png</file>
+        <file>resources/images/back.png</file>
+        <file>resources/images/take_off.png</file>
+        <file>resources/images/cloud_icon.png</file>
+        <file>resources/images/rain_icon.png</file>
+        <file>resources/images/sun_icon.png</file>
+        <file>resources/images/smog_icon.png</file>
+        <file>resources/images/snow_icon.png</file>
+        <file>resources/images/bg.png</file>
+        <file>resources/images/world_map.png</file>
     </qresource>
 </RCC>

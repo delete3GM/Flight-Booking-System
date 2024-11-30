@@ -15,7 +15,6 @@ public:
     explicit MapPage(Flight_Ticket_Management_System *mainWindow, QWidget *parent = nullptr);
     ~MapPage();
     void initWebEngine();
-    void configureWebEngine();
     void showMap();
     void initMapPage();
     void processLeafletMap(int index, QList<Order> orders);

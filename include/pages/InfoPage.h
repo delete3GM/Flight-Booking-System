@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QTreeWidgetItem>
 #include "flight_ticket_management_system.h"
+#include "qlabel.h"
 
 namespace Ui {
 class InfoPage;
@@ -20,6 +21,7 @@ public:
     void addFlightPathToTree(QTreeWidgetItem* item, FlightRoute& flightPath, const int row);
     void displayFlights(QVector<FlightRoute>& flights);
     void initAirlineArea();
+    QLabel* createPriceLabel(const QString& text);
 
 private:
     Ui::InfoPage *ui;
@@ -32,6 +34,7 @@ private:
 
 private slots:
     void handleBookButtonClick(int row);
+    void handleCabinClassSelected(const QString& cabinClass, int row);
     void handleSortButtonClick(int buttonId);
     void info2search();
     void applyFilters();

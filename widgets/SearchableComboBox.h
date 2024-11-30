@@ -2,35 +2,30 @@
 #define SEARCHABLECOMBOBOX_H
 
 #include <QComboBox>
-#include <QLineEdit>
-#include <QStringListModel>
+#include <QCompleter>
+#include <QMap>
+#include "Utils.h"
+#include "qlabel.h"
 
 class SearchableComboBox : public QComboBox {
     Q_OBJECT
 
 public:
     explicit SearchableComboBox(QWidget *parent = nullptr);
-
-    void addItem(const QString &text);
-    void addItems(const QStringList &texts);
-    void setEditText(const QString &text);
-    QString editText() const;
-
-signals:
-    void editTextChanged(const QString &text);
-    void currentIndexChanged(int index);
-
-public slots:
-    void onTextChanged(const QString &arg1);
+    void initializeBox(const QVector<QString>& cities, const QMap<QString, CityInfo>& cityInfoMap);
+    QString getCurrentCity() const;
 
 private:
-    QLineEdit *lineEdit;
-    QCompleter *completer;
-    QStringListModel *model; // 用于存储下拉框的项
-    QStringList originalItems; // 原始项列表
+    QCompleter* completer;
+    QMap<QString, CityInfo> cityInfoMap;
+    void setupUI();
+    void setupCompleter();
 
-    void showPopup() override;
-    void hidePopup() override;
+signals:
+    void citySelected(const QString& city);
+
+private slots:
+    void onTextChanged(const QString& text);
 };
 
 #endif // SEARCHABLECOMBOBOX_H

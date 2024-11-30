@@ -14,30 +14,37 @@ class CheckoutPage : public QWidget {
 public:
     explicit CheckoutPage(Flight_Ticket_Management_System *mainWindow, QWidget *parent = nullptr);
     ~CheckoutPage();
+
     void initCheckout();
+
     Passenger createPassenger();
     Order createOrder(const Passenger& passenger);
-    void handleRescheduleOrder(const Order& order);
+    void handleRescheduleOrder();
     void handleNewOrder(const Order& order);
     void updateFlightSeats(const Order& order);
     void increaseSeatsForRescheduledFlight();
-    void increaseSeatsForFlight(const Flight* flight);
+    void increaseSeatsForFlight(const std::shared_ptr<Flight> flight);
     bool saveOrderToFile(const Order& order);
     void resetGenderRadioButtons();
     void loadPassengerHistory();
     void fillPassengerInfo(const Passenger &passenger);
     void initPassengerArea();
+    QString detailInfo();
 
 private:
     Ui::CheckoutPage *ui;
     Flight_Ticket_Management_System *mainWindow;
-
     QList<Passenger> passengerList;
     QButtonGroup *passengerButtonGroup;
+
+    QString meal = "无餐食";
 
  private slots:
     void addPassenger();
     void checkout2info();
+    void changeNoFood();
+    void changeNormalFood();
+    void changePlusFood();
 
 
 

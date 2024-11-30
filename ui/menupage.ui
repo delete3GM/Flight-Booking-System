@@ -22,8 +22,8 @@
   <widget class="QPushButton" name="exitBtn">
    <property name="geometry">
     <rect>
-     <x>410</x>
-     <y>370</y>
+     <x>160</x>
+     <y>380</y>
      <width>151</width>
      <height>41</height>
     </rect>
@@ -40,8 +40,8 @@
   <widget class="QPushButton" name="userBtn">
    <property name="geometry">
     <rect>
-     <x>410</x>
-     <y>280</y>
+     <x>160</x>
+     <y>290</y>
      <width>151</width>
      <height>41</height>
     </rect>
@@ -58,8 +58,8 @@
   <widget class="QPushButton" name="searchBtn">
    <property name="geometry">
     <rect>
-     <x>410</x>
-     <y>190</y>
+     <x>160</x>
+     <y>200</y>
      <width>151</width>
      <height>41</height>
     </rect>
@@ -73,22 +73,49 @@
     <string>订票中心</string>
    </property>
   </widget>
-  <widget class="QLabel" name="titleLbl">
+  <widget class="QLabel" name="userLbl">
    <property name="geometry">
     <rect>
-     <x>400</x>
-     <y>70</y>
-     <width>361</width>
-     <height>51</height>
+     <x>830</x>
+     <y>20</y>
+     <width>121</width>
+     <height>41</height>
     </rect>
    </property>
    <property name="font">
     <font>
-     <pointsize>25</pointsize>
+     <family>微软雅黑</family>
+     <pointsize>11</pointsize>
     </font>
    </property>
    <property name="text">
-    <string>机票预订系统</string>
+    <string/>
+   </property>
+  </widget>
+  <widget class="QLabel" name="iconLbl">
+   <property name="geometry">
+    <rect>
+     <x>780</x>
+     <y>20</y>
+     <width>41</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QLabel" name="planeLbl">
+   <property name="geometry">
+    <rect>
+     <x>420</x>
+     <y>90</y>
+     <width>481</width>
+     <height>401</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
    </property>
   </widget>
  </widget>

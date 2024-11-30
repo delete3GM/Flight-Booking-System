@@ -6,6 +6,7 @@ class Flight {
 private:
     QString airline;
     QString flightNumber;
+    QString aircraftType;
     QString departureCity;
     QString departureTime;
     QString arrivalCity;
@@ -15,10 +16,13 @@ private:
 
 public:
     Flight();
-    Flight(QString a, QString f, QString dCity, QString depTime, QString aCity, QString arrTime, double p, int remainSeat);
+    Flight(QString a, QString f, QString at, QString dCity, QString depTime, QString aCity,
+           QString arrTime, double p, int remainSeat);
+    ~Flight();
 
     QString getAirline() const;
     QString getFlightNumber() const;
+    QString getAircraftType() const;
     QString getDepartureCity() const;
     QString getDepartureTime() const;
     QString getArrivalCity() const;
@@ -29,6 +33,7 @@ public:
 
     void setAirline(const QString &a);
     void setFlightNumber(const QString &f);
+    void setAircraftType(const QString &at);
     void setDepartureCity(const QString &d);
     void setDepartureTime(const QString &depTime);
     void setArrivalCity(const QString &aCity);
@@ -41,7 +46,6 @@ public:
 
     bool operator == (const Flight& other) const;
     bool operator != (const Flight& other) const;
-
 
 };
 

@@ -7,9 +7,23 @@
 #include "qlabel.h"
 #include "qpainter.h"
 #include "qtimer.h"
+#include "qwebenginesettings.h"
+#include "qwebengineview.h"
 #include <QDateTime>
 
-QSet<QString> Utils::foreignCities = {"伦敦","纽约","莫斯科","悉尼","东京","巴黎"};
+QSet<QString> foreignCities = {"伦敦","纽约","莫斯科","悉尼","东京","巴黎"};
+
+QMap<QString, double> mealPrice = {
+    {"无餐食", 0.0},
+    {"标准餐", 35.0},
+    {"豪华餐", 80.0}
+};
+
+QMap<QString, double> cabinPrice = {
+    {"经济舱", 1.0},
+    {"商务舱", 1.8},
+    {"头等舱", 2.4}
+};
 
 QTextStream* LoadFlightFile(const QString& filename) {
     QFile* flight_file = new QFile(filename);
@@ -31,6 +45,12 @@ int Duration(QString dep, QString arr) {
     qint64 msecs = depTime.msecsTo(arrTime);
     int seconds = msecs / 1000;
     return seconds / 60; // 分钟
+}
+
+QString formatMinutes(int totalMinutes) {
+    int hours = totalMinutes / 60;
+    int minutes = totalMinutes % 60;
+    return QString("%1h %2min").arg(hours).arg(minutes);
 }
 
 QString hashPassword(const QString &password) {
@@ -109,7 +129,28 @@ void clearJsonFile(const QString &filePath) {
     }
 }
 
-
+void configWebEngine(QWebEngineView * we) {
+    we->settings()->setAttribute(
+        QWebEngineSettings::JavascriptEnabled, true);
+    we->settings()->setAttribute(
+        QWebEngineSettings::LocalContentCanAccessFileUrls, true);
+    we->settings()->setAttribute(
+        QWebEngineSettings::LocalStorageEnabled, true);
+    we->settings()->setAttribute(
+        QWebEngineSettings::LocalContentCanAccessRemoteUrls, true);
+    we->settings()->setAttribute(
+        QWebEngineSettings::WebGLEnabled, true);
+    we->settings()->setAttribute(
+        QWebEngineSettings::Accelerated2dCanvasEnabled, true);
+    we->settings()->setAttribute(
+        QWebEngineSettings::AllowRunningInsecureContent, true);
+    we->settings()->setAttribute(
+        QWebEngineSettings::ErrorPageEnabled, true);
+    we->settings()->setAttribute(
+        QWebEngineSettings::PluginsEnabled, false);
+    we->settings()->setAttribute(
+        QWebEngineSettings::AllowGeolocationOnInsecureOrigins, false);
+}
 
 
 

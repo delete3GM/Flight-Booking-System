@@ -60,10 +60,12 @@ void Flight_Ticket_Management_System::showSearchPage() {
 void Flight_Ticket_Management_System::showInfoPage() {
     infoPage = new InfoPage(this);
     setCentralWidget(infoPage);
-    if(searchedFlights.empty()) {
+    if(depCity == arrCity) {
+        showSearchPage();
+    } else if (searchedFlights.empty()) {
         QMessageBox::warning(this, "注意", "没有查询到符合条件的航班");
         showSearchPage();
-    } else{
+    } else {
         infoPage->displayFlights(searchedFlights);
     }
 }
@@ -89,16 +91,6 @@ void Flight_Ticket_Management_System::initReschedule(const QString& dep, const Q
     setCentralWidget(searchPage);
 }
 
-void Flight_Ticket_Management_System::loadUserOrders() {
-    QString filePath = ORDER_PATH + currentUserId + ".json";
-    QFile file(filePath);
-    if (!file.exists()) {
-        qDebug() << "用户订单文件不存在，将创建新文件:" << filePath;
-        file.open(QIODevice::WriteOnly);
-    } else {
-        qDebug() << "用户文件:" << currentUserId + ".json";
-        orderManager.loadOrdersFromJsonFile(filePath);
-    }
-}
+
 
 

@@ -1,3 +1,4 @@
+#include "qcompleter.h"
 #include "qprocess.h"
 #include "ui_loginpage.h"
 #include "pages/LoginPage.h"
@@ -42,7 +43,12 @@ void LoginPage::initLoginPage() {
     ui->typeAcnt->setValidator(validator);
     ui->changePswBtn->setText("<a href='#'>忘记密码？</a>");
     loadCityInfo();
-    //this->setStyleSheet("border-image: url(:/images/resources/images/background.png);");
+
+    QPixmap backgroundImage(":/images/resources/images/background.png");
+    QPalette palette;
+    palette.setBrush(QPalette::Window, QBrush(backgroundImage.scaled(this->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation)));
+    this->setPalette(palette);
+    this->setAutoFillBackground(true);
 }
 
 QString LoginPage::getID() const {
@@ -74,9 +80,9 @@ bool LoginPage::isUserRegistered(const QString& id, const QString& psw) {
 }
 
 void LoginPage::Login() {
-    mainWindow->currentUserId = getID();
+    mainWindow->currentUser.setID(getID());
     QString Psw = getPassword();
-    if (mainWindow->currentUserId.isEmpty() || Psw.isEmpty()) {
+    if (mainWindow->currentUser.getID().isEmpty() || Psw.isEmpty()) {
         QMessageBox::warning(this, "登录失败", "身份证号或密码不能为空！");
         return;
     }
@@ -85,9 +91,9 @@ void LoginPage::Login() {
         mainWindow->exitWindow();
         return;
     }
-    if (isUserRegistered(mainWindow->currentUserId, Psw)) {
+    if (isUserRegistered(mainWindow->currentUser.getID(), Psw)) {
         QMessageBox::information(this, "登录成功", "欢迎回来！");
-        mainWindow->loadUserOrders();
+        mainWindow->currentUser.loadUserOrders();
         mainWindow->showMenuPage();
         loginAttempts = 0;
     } else {
@@ -145,8 +151,8 @@ void LoginPage::signUp() {
     file.close();
 
     QMessageBox::information(this, "注册成功", "用户注册成功！");
-    mainWindow->currentUserId = id;
-    mainWindow->loadUserOrders();
+    mainWindow->currentUser.setID(id);
+    mainWindow->currentUser.loadUserOrders();
     mainWindow->showMenuPage();
 }
 
@@ -300,7 +306,7 @@ void LoginPage::executePythonScript(const QString &scriptPath) {
     process->setWorkingDirectory(exeFileInfo.dir().path());
     process->start();
 
-    if (!process->waitForFinished()) {
+    if (!process->waitForFinished(5000)) {
         qWarning() << "Error:" << process->errorString();
     } else {
         //qDebug() << "Process finished successfully.";

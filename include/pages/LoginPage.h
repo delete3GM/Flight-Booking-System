@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include "flight_ticket_management_system.h"
+#include "qcombobox.h"
 
 namespace Ui {
 class LoginPage;
@@ -31,6 +32,7 @@ private:
     int loginAttempts = 0;
     static const int MAX_LOGIN_ATTEMPTS = 3;
     QAction *toggleAction;
+
 
 private slots:
     void Login();

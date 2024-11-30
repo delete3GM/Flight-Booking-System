@@ -6,8 +6,8 @@
 #include <QFile>
 #include <QTextStream>
 #include "FlightNetwork.h"
-#include "OrderManager.h"
 #include "FlightRoute.h"
+#include "User.h"
 #include "Utils.h"
 #include <QButtonGroup>
 #include <QAbstractButton>
@@ -51,43 +51,6 @@ public:
         GLOBAL
     };
 
-public:
-    explicit Flight_Ticket_Management_System(QWidget *parent = nullptr);
-    ~Flight_Ticket_Management_System();
-    void initializeOrdersTable();
-    void loadUserOrders();
-
-    QMap<QString, CityInfo> cityInfoMap;
-
-
-
-public:
-    QString currentUserId; //当前用户身份证号
-    FlightNetwork network; //当前航线图
-    FlightRoute selectedFlight; //当前选择航班
-    OrderManager orderManager; //管理所有订单2
-    Order rescheduleOrder; //要改签的订单
-    QVector<FlightRoute> searchedFlights; //搜索出的航班
-    QString depCity; //起飞城市
-    QString arrCity; //到达城市
-    QDate selectedDate; //出发时间
-
-    ORDER_TYPE orderType; //当前订单类型
-    MAP_TYPE map_type;
-
-    void showLoginPage();
-    void showMenuPage();
-    void showSearchPage();
-    void showInfoPage();
-    void showCheckoutPage();
-    void showUserPage();
-    void showMapPage();
-    void initReschedule(const QString& dep, const QString& arr, const QDate& date);
-    void exitWindow();
-
-    //QSet<QString> domesitic_city = {"北京","哈尔滨","呼和浩特","乌鲁木齐","广州","拉萨", "昆明","成都","上海","南宁"};
-    //QSet<QString> global_city = {"伦敦","东京","拉斯维加斯","莫斯科","巴黎","纽约"};
-
 private:
     Ui::Flight_Ticket_Management_System *ui;
     LoginPage *loginPage;
@@ -97,6 +60,42 @@ private:
     CheckoutPage *checkoutPage;
     UserPage *userPage;
     MapPage *mapPage;
+
+
+
+public:
+    User currentUser; //登录用户
+    FlightNetwork network; //航线网络
+    FlightRoute selectedFlight; //当前选择航班
+    Order rescheduleOrder; //要改签的订单
+    QVector<FlightRoute> recommendationFlights; //推荐航班
+    QVector<FlightRoute> searchedFlights; //搜索出的航班
+    QString depCity; //起飞城市
+    QString arrCity; //到达城市
+    QDate selectedDate; //出发时间
+    QString selectedClass; //舱位
+    QMap<QString, CityInfo> cityInfoMap; //城市信息
+
+    ORDER_TYPE orderType; //当前订单类型
+    MAP_TYPE map_type; //当前地图类型
+
+
+
+public:
+    explicit Flight_Ticket_Management_System(QWidget *parent = nullptr);
+    ~Flight_Ticket_Management_System();
+    void initializeOrdersTable();
+    void initReschedule(const QString& dep, const QString& arr, const QDate& date);
+
+    void showLoginPage();
+    void showMenuPage();
+    void showSearchPage();
+    void showInfoPage();
+    void showCheckoutPage();
+    void showUserPage();
+    void showMapPage();
+    void exitWindow();
+
 
 };
 #endif // FLIGHT_TICKET_MANAGEMENT_SYSTEM_H

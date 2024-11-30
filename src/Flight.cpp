@@ -3,14 +3,22 @@
 #include <QTextStream>
 #include <QDateTime>
 
-Flight::Flight(){}
+Flight::Flight(){
 
-Flight::Flight(QString a, QString f, QString dCity, QString depTime, QString aCity, QString arrTime, double p, int remainSeat)
-    : airline(a), flightNumber(f), departureCity(dCity), departureTime(depTime), arrivalCity(aCity), arrivalTime(arrTime),
+}
+
+Flight::Flight(QString a, QString f, QString at, QString dCity, QString depTime, QString aCity, QString arrTime, double p, int remainSeat)
+    : airline(a), flightNumber(f), aircraftType(at), departureCity(dCity), departureTime(depTime), arrivalCity(aCity), arrivalTime(arrTime),
     price(p), remainSeatNum(remainSeat) {}
+
+Flight::~Flight() {}
 
 QString Flight::getAirline() const {
     return airline;
+}
+
+QString Flight::getAircraftType() const {
+    return aircraftType;
 }
 
 QString Flight::getFlightNumber() const {
@@ -53,6 +61,10 @@ void Flight::setFlightNumber(const QString &f) {
     flightNumber = f;
 }
 
+void Flight::setAircraftType(const QString &at) {
+    aircraftType = at;
+}
+
 void Flight::setDepartureCity(const QString &d) {
     departureCity = d;
 }
@@ -78,9 +90,10 @@ void Flight::setRemainSeatNum(int remainSeat) {
 }
 
 QString Flight::toString() const {
-    return QString("%1, %2, %3, %4, %5, %6, %7, %8")
+    return QString("%1, %2, %3, %4, %5, %6, %7, %8, %9")
     .arg(airline)
         .arg(flightNumber)
+        .arg(aircraftType)
         .arg(departureCity)
         .arg(departureTime)
         .arg(arrivalCity)
@@ -93,9 +106,10 @@ QString Flight::showInfo() {
     if (price == 0) {
         return QString("");
     }
-    return QString("%1 %2\n%3->%5\n%4->%6\n")
+    return QString("%1 %2\n%3\n%4->%6\n%5->%7\n")
         .arg(airline)
         .arg(flightNumber)
+        .arg(aircraftType)
         .arg(departureCity)
         .arg(departureTime)
         .arg(arrivalCity)
@@ -105,6 +119,7 @@ QString Flight::showInfo() {
 bool Flight::operator == (const Flight& other) const {
     return airline == other.airline &&
         flightNumber == other.flightNumber &&
+        aircraftType == other.aircraftType &&
         departureCity == other.departureCity &&
         departureTime == other.departureTime &&
         arrivalCity == other.arrivalCity &&

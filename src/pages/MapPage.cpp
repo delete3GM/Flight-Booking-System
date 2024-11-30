@@ -33,30 +33,7 @@ void MapPage::initWebEngine() {
         ui->webEngineView->setUrl(QUrl::fromLocalFile(
             "D:/CS/projects/Flight_Ticket_Management_System/web/html/global_routes.html"));
     }
-    configureWebEngine();
-}
-
-void MapPage::configureWebEngine() {
-    ui->webEngineView->settings()->setAttribute(
-        QWebEngineSettings::JavascriptEnabled, true);
-    ui->webEngineView->settings()->setAttribute(
-        QWebEngineSettings::LocalContentCanAccessFileUrls, true);
-    ui->webEngineView->settings()->setAttribute(
-        QWebEngineSettings::LocalStorageEnabled, true);
-    ui->webEngineView->settings()->setAttribute(
-        QWebEngineSettings::LocalContentCanAccessRemoteUrls, true);
-    ui->webEngineView->settings()->setAttribute(
-        QWebEngineSettings::WebGLEnabled, true);
-    ui->webEngineView->settings()->setAttribute(
-        QWebEngineSettings::Accelerated2dCanvasEnabled, true);
-    ui->webEngineView->settings()->setAttribute(
-        QWebEngineSettings::AllowRunningInsecureContent, true);
-    ui->webEngineView->settings()->setAttribute(
-        QWebEngineSettings::ErrorPageEnabled, true);
-    ui->webEngineView->settings()->setAttribute(
-        QWebEngineSettings::PluginsEnabled, false);
-    ui->webEngineView->settings()->setAttribute(
-        QWebEngineSettings::AllowGeolocationOnInsecureOrigins, false);
+    configWebEngine(ui->webEngineView);
 }
 
 void MapPage::initMapPage() {
@@ -92,7 +69,7 @@ void MapPage::displayMap(int index) {
 
 void MapPage::drawFlightRoutesLeaflet(const FlightRoute& flightRoute) {
 
-    for (const Flight* flight : flightRoute) {
+    for (const std::shared_ptr<Flight> &flight : flightRoute) {
         QString depCity = flight->getDepartureCity();
         QString arrCity = flight->getArrivalCity();
 
@@ -133,7 +110,7 @@ void MapPage::processLeafletMap(int index, QList<Order> orders) {
 
 void MapPage::drawFlightRoutesCesium(const FlightRoute& flightRoute) {
     if(!flightRoute.isDomestic()){
-        for (const Flight* flight : flightRoute) {
+        for (const std::shared_ptr<Flight> &flight : flightRoute) {
             QString depCity = flight->getDepartureCity();
             QString arrCity = flight->getArrivalCity();
 
@@ -183,7 +160,7 @@ void MapPage::filterFlights() {
     ui->webEngineView->page()->runJavaScript("clearGeodesicLines()");
 
     QList<Order> filteredOrders;
-    auto orders = mainWindow->orderManager.getOrders();
+    auto orders = mainWindow->currentUser.orderManager.getOrders();
     for (const Order& order : orders) {
         if (order.getStatus() == "已支付") {
             if(mainWindow->map_type == Flight_Ticket_Management_System::DOMESTIC){

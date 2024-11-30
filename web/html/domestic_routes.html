@@ -37,46 +37,64 @@
         });
         map.addLayer(layer);
         var geodesicLines = [];
+        var markers = [];
 
-        // 清除所有测地线
-        function clearGeodesicLines() {
-            geodesicLines.forEach(function(line) {
-                map.removeLayer(line); // 从地图上移除线
-            });
-            geodesicLines = [];
+
+        function setCenterAndZoom(latitude, longitude, zoomLevel) {
+            map.setView([latitude, longitude], zoomLevel);
         }
 
-        function drawGeodesicLine(x1, y1, x2, y2, description) {
-        // 添加起点标记
-            const startMarker = L.marker([x1, y1]).addTo(map)
-                .bindPopup('起点') // 绑定弹出框内容
-                .openPopup(); // 打开弹出框
+        function clearGeodesicLines() {
+        geodesicLines.forEach(function(geodesic) {
+                map.removeLayer(geodesic); // 从地图上移除线
+            });
+            geodesicLines = []; // 清空测地线数组
 
-            // 添加终点标记
-            const endMarker = L.marker([x2, y2]).addTo(map)
-                .bindPopup('终点') // 绑定弹出框内容
-                .openPopup(); // 打开弹出框
+            // 移除所有标记
+            markers.forEach(function(marker) {
+                map.removeLayer(marker);
+            });
+            markers = []; // 清空标记数组
+        }
+
+        function drawGeodesicLine(x1, y1, x2, y2, description, flag) {
+
+            // 添加起点标记
+            if (flag == "END_ONLY") {
+                if (geodesicLines.length === 0) {
+                    setCenterAndZoom(x1, y1, 3);
+                }
+            } else {
+                const startMarker = L.marker([x1, y1]).addTo(map)
+                    .openPopup();
+                markers.push(startMarker);
+            }
+
+           // 添加终点标记
+           const endMarker = L.marker([x2, y2]).addTo(map)
+               .openPopup();
+           markers.push(endMarker);
 
             const loc1 = new L.LatLng(x1, y1);
             const loc2 = new L.LatLng(x2, y2);
             const geodesic = new L.Geodesic([loc1, loc2]).addTo(map);
 
             // 设置初始样式
-            geodesic.setStyle({ color: 'blue', weight: 2 }); // 初始颜色和粗细
+            geodesic.setStyle({ color: 'blue', weight: 2 });
 
             // 添加鼠标悬停事件，显示描述信息并改变样式
             geodesic.on('mouseover', function () {
-                geodesic.setStyle({ color: 'blue', weight: 5 }); // 鼠标悬停时的颜色和粗细
+                geodesic.setStyle({ color: 'blue', weight: 5 });
                 L.popup()
-                    .setLatLng([(x1 + x2) / 2, (y1 + y2) / 2]) // 弹出框显示在两点中间
+                    .setLatLng([(x1 + x2) / 2, (y1 + y2) / 2])
                     .setContent(description) // 设置弹出框的内容
                     .openOn(map); // 在地图上打开弹出框
             });
 
             // 添加鼠标移出事件，关闭弹出框并恢复样式
             geodesic.on('mouseout', function () {
-                geodesic.setStyle({ color: 'blue', weight: 2 }); // 恢复原始颜色和粗细
-                map.closePopup(); // 关闭弹出框
+                geodesic.setStyle({ color: 'blue', weight: 2 });
+                map.closePopup();
             });
 
             // 将新绘制的测地线存储到数组中

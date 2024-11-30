@@ -4,31 +4,29 @@
 
 FlightRoute::FlightRoute() {}
 
-FlightRoute::~FlightRoute() {
-    qDeleteAll(flights);
-}
+
 
 FlightRoute::FlightRoute(const FlightRoute& other) {
     *this = other; // 使用拷贝赋值操作符
 }
 
-FlightRoute::FlightRoute(const QVector<Flight>& initFlights) {
-    foreach (const Flight& flight, initFlights) {
-        flights.append(new Flight(flight));
-    }
+// FlightRoute::FlightRoute(const QVector<Flight>& initFlights) {
+//     foreach (const Flight& flight, initFlights) {
+//         flights.append(new Flight(flight));
+//     }
+// }
+
+void FlightRoute::append(std::shared_ptr<Flight> flight) {
+    flights.push_back(flight);
 }
 
-void FlightRoute::append(Flight* flight) {
-    flights.append(flight);
-}
-
-const QVector<Flight*>& FlightRoute::getFlights() const {
+const QVector<std::shared_ptr<Flight>>& FlightRoute::getFlights() const {
     return flights;
 }
 
 double FlightRoute::getTotalPrice() const {
     double total = 0.0;
-    for (const Flight* flight : flights) {
+    for (const std::shared_ptr<Flight> &flight : flights) {
         total += flight->getPrice();
     }
     return total;
@@ -36,7 +34,7 @@ double FlightRoute::getTotalPrice() const {
 
 int FlightRoute::getTotalFlightTime() const {
     int totalDuration = 0;
-    for (const Flight* flight : flights) {
+    for (const std::shared_ptr<Flight> &flight : flights) {
         totalDuration += flight->getFlightTime();
     }
     return totalDuration;
@@ -79,9 +77,9 @@ void FlightRoute::removeLast() {
 }
 
 bool FlightRoute::isDomestic() const{
-    for (Flight* flight : flights) {
-        if (Utils::foreignCities.contains(flight->getDepartureCity()) ||
-            Utils::foreignCities.contains(flight->getArrivalCity())) {
+    for (std::shared_ptr<Flight> flight : flights) {
+        if (foreignCities.contains(flight->getDepartureCity()) ||
+            foreignCities.contains(flight->getArrivalCity())) {
             return false;
         }
     }
@@ -103,58 +101,75 @@ QString FlightRoute::showCityPath() const {
     return path;
 }
 
+int FlightRoute::getTotalTransferTime() const {
+    int totalTransferTime = 0;
+
+    for (int i = 1; i < flights.size(); ++i) {
+        const std::shared_ptr<Flight> prevFlight = flights[i - 1];
+        const std::shared_ptr<Flight> currentFlight = flights[i];
+        QDateTime prevArrivalTime = QDateTime::fromString(prevFlight->getArrivalTime(), "yyyy-MM-dd HH:mm");
+        QDateTime currentDepartureTime = QDateTime::fromString(currentFlight->getDepartureTime(), "yyyy-MM-dd HH:mm");
+
+        if (prevArrivalTime.isValid() && currentDepartureTime.isValid()) {
+            qint64 transferTime = prevArrivalTime.secsTo(currentDepartureTime);
+            if (transferTime > 0) {
+                totalTransferTime += transferTime;
+            }
+        }
+    }
+    return totalTransferTime;
+}
+
 QString FlightRoute::showFlightsInfo() const {
     QString flightInfo = "";
-    QString totalPrice = "待支付￥" + QString::number(this->getTotalPrice());
-    for(Flight* flight : flights) {
+    for(std::shared_ptr<Flight> flight : flights) {
         flightInfo += flight->showInfo() + "\n";
     }
-    flightInfo += totalPrice;
     return flightInfo;
 }
 
-Flight* FlightRoute::first() const {
+std::shared_ptr<Flight> FlightRoute::first() const {
     if (flights.isEmpty()) {
         return nullptr;
     }
     return flights.first();
 }
 
-Flight* FlightRoute::last() const {
+std::shared_ptr<Flight> FlightRoute::last() const {
     if (flights.isEmpty()) {
         return nullptr;
     }
     return flights.last();
 }
 
-QVector<Flight*>::iterator FlightRoute::begin() {
+QVector<std::shared_ptr<Flight>>::iterator FlightRoute::begin() {
     return flights.begin();
 }
 
-QVector<Flight*>::iterator FlightRoute::end() {
+QVector<std::shared_ptr<Flight>>::iterator FlightRoute::end() {
     return flights.end();
 }
 
-const QVector<Flight*>::const_iterator FlightRoute::begin() const {
+const QVector<std::shared_ptr<Flight>>::const_iterator FlightRoute::begin() const {
     return flights.begin();
 }
 
-const QVector<Flight*>::const_iterator FlightRoute::end() const {
+const QVector<std::shared_ptr<Flight>>::const_iterator FlightRoute::end() const {
     return flights.end();
 }
 
 FlightRoute& FlightRoute::operator=(const FlightRoute& other) {
     if (this != &other) { // 自我赋值检查
-        qDeleteAll(flights); // 释放旧资源
+        //qDeleteAll(flights); // 释放旧资源
         flights.clear();
-        for (const Flight* flight : other.flights) {
-            flights.append(new Flight(*flight)); // 深拷贝
+        for (const std::shared_ptr<Flight> &flight : other.flights) {
+            flights.push_back(flight); // 深拷贝
         }
     }
     return *this;
 }
 
-Flight* FlightRoute::operator[](int index) const {
+std::shared_ptr<Flight> FlightRoute::operator[](int index) const {
     if (index < 0 || index >= flights.size()) {
         return nullptr;
     }

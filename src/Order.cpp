@@ -1,6 +1,7 @@
 #include "Order.h"
 #include "Flight.h"
 #include "Passenger.h"
+#include "Utils.h"
 #include <QString>
 #include <QJsonArray>
 #include <QJsonObject>
@@ -8,8 +9,8 @@
 
 Order::Order(){}
 
-Order::Order(QString id, const Passenger& user, FlightRoute fr, QString st)
-    : orderId(id), passenger(user), flightroute(fr), status(st) {}
+Order::Order(QString id, const Passenger& user, FlightRoute fr, QString m, QString st, double pc, QString c)
+    : orderId(id), passenger(user), flightroute(fr), meal(m), status(st) ,price(pc), cabinClass(c){}
 
 QString Order::getOrderId() const {
     return orderId;
@@ -39,6 +40,18 @@ void Order::setStatus(const QString& st) {
     status = st;
 }
 
+double Order::getPrice() const {
+    return price;
+}
+
+QString Order::getCabinClass() const {
+    return cabinClass;
+}
+
+QString Order::getMeal() const {
+    return meal;
+}
+
 QJsonObject Order::toJsonObject() const {
     QJsonObject orderObject;
     orderObject["orderId"] = orderId;
@@ -51,7 +64,7 @@ QJsonObject Order::toJsonObject() const {
     orderObject["passenger"] = passengerObject;
 
     QJsonArray flightsArray;
-    for (const Flight* flight : flightroute) {
+    for (const std::shared_ptr<Flight> &flight : flightroute) {
         QJsonObject flightObject;
         flightObject["airline"] = flight->getAirline();
         flightObject["flightNumber"] = flight->getFlightNumber();
@@ -63,11 +76,19 @@ QJsonObject Order::toJsonObject() const {
         flightObject["remainSeatNum"] = flight->getRemainSeatNum();
         flightsArray.append(flightObject);
     }
-    orderObject["flightRoute"] = flightsArray;
 
+    orderObject["flightRoute"] = flightsArray;
+    orderObject["meal"] = meal;
     orderObject["status"] = status;
+    orderObject["price"] = price;
+    orderObject["cabinClass"] = cabinClass;
     return orderObject;
 }
+
+double Order::getMealPrice() const {
+    return mealPrice[meal];
+}
+
 
 bool Order::operator==(const Order& other) const {
     return orderId == other.orderId;

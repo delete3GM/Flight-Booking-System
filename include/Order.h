@@ -11,17 +11,25 @@ private:
     QString orderId;
     Passenger passenger;
     FlightRoute flightroute;
+    QString meal;
     QString status;
+    double price;
+    QString cabinClass;
 
 
 public:
 
     Order();
-    Order(QString id, const Passenger& passenger, FlightRoute flightroute, QString status);
+    Order(QString id, const Passenger& passenger, FlightRoute flightroute, QString meal, QString status, double price, QString cabinClass);
     QString getOrderId() const;
     const Passenger& getPassenger() const;
     const FlightRoute &getFlightRoute() const;
     QString getStatus() const;
+    double getPrice() const;
+    QString getCabinClass() const;
+    QString getMeal() const;
+    double getMealPrice() const;
+
     void setOrderId(const QString& id);
     void setPassenger(const Passenger& passenger);
     void setStatus(const QString& st);

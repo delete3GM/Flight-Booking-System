@@ -15,6 +15,10 @@ QList<Order>& OrderManager::getOrders() {
     return this->orders;
 }
 
+int OrderManager::getOrderNum() {
+    return orders.size();
+}
+
 void OrderManager::addOrder(const Order& order) {
     orders.append(order);
 }
@@ -73,15 +77,18 @@ void OrderManager::loadOrdersFromJsonFile(const QString& filePath) {
         for (const QJsonValue &flightValue : flightsArray) {
             QJsonObject flightObj = flightValue.toObject();
             Flight flight(flightObj["airline"].toString(), flightObj["flightNumber"].toString(),
-                          flightObj["departureCity"].toString(), flightObj["departureTime"].toString(),
-                          flightObj["arrivalCity"].toString(), flightObj["arrivalTime"].toString(),
-                          flightObj["price"].toDouble(), flightObj["remainSeatNum"].toInt());
+                          flightObj["aircraftType"].toString(),flightObj["departureCity"].toString(),
+                          flightObj["departureTime"].toString(),  flightObj["arrivalCity"].toString(),
+                          flightObj["arrivalTime"].toString(), flightObj["price"].toDouble(),
+                          flightObj["remainSeatNum"].toInt());
             flights.append(flight);
         }
-
+        QString meal = obj["meal"].toString();
         QString status = obj["status"].toString();
+        double price = obj["price"].toDouble();
+        QString cabinClass = obj["cabinClass"].toString();
         FlightRoute flightRoute(flights);
-        Order order(orderId, passenger, flightRoute, status);
+        Order order(orderId, passenger, flightRoute, meal, status, price, cabinClass);
 
         bool exists = false;
         for (const Order& existingOrder : orders) {
@@ -94,5 +101,13 @@ void OrderManager::loadOrdersFromJsonFile(const QString& filePath) {
             orders.append(order);
         }
     }
+}
+
+double OrderManager::getTotalConsumption() {
+    double total = 0;
+    for (const Order& order : orders) {
+        total += order.getPrice();
+    }
+    return total;
 }
 

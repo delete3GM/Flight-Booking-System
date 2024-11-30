@@ -8,49 +8,12 @@ CONFIG += c++17
 # In order to do so, uncomment the following line.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-
-# 外部库
-INCLUDEPATH += $$PWD/lib/
-
-HEADERS += \
-    $$PWD/lib/QRCodeGenerator/qrcodegen.h \
-    widgets/CitySelectionDialog.h \
-    widgets/SearchableComboBox.h
-
-SOURCES += \
-    $$PWD/lib/QRCodeGenerator/qrcodegen.cpp \
-    widgets/CitySelectionDialog.cpp \
-    widgets/SearchableComboBox.cpp
-
-
-# 添加源文件路径
-SOURCES += \
-    src/FlightRoute.cpp \
-    src/FlightRecommendation.cpp \
-    src/UserPreferences.cpp \
-    src/Flight.cpp \
-    src/FlightNetwork.cpp \
-    src/Order.cpp \
-    src/OrderManager.cpp \
-    src/Passenger.cpp \
-    src/Utils.cpp \
-    src/main.cpp \
-    src/flight_ticket_management_system.cpp \
-    src/pages/LoginPage.cpp \
-    src/pages/MenuPage.cpp \
-    src/pages/SearchPage.cpp \
-    src/pages/MapPage.cpp \
-    src/pages/UserPage.cpp \
-    src/pages/CheckoutPage.cpp \
-    src/pages/InfoPage.cpp
-
 # 添加头文件路径
 INCLUDEPATH += $$PWD/include
 
 HEADERS += \
+    include/User.h \
     include/FlightRoute.h \
-    include/FlightRecommendation.h \
-    include/UserPreferences.h \
     include/City.h \
     include/Flight.h \
     include/FlightNetwork.h \
@@ -67,6 +30,46 @@ HEADERS += \
     include/pages/UserPage.h \
     include/pages/CheckoutPage.h \
     include/pages/InfoPage.h
+
+# 添加源文件路径
+SOURCES += \
+    src/User.cpp \
+    src/FlightRoute.cpp \
+    src/Flight.cpp \
+    src/FlightNetwork.cpp \
+    src/Order.cpp \
+    src/OrderManager.cpp \
+    src/Passenger.cpp \
+    src/Utils.cpp \
+    src/main.cpp \
+    src/flight_ticket_management_system.cpp \
+    src/pages/LoginPage.cpp \
+    src/pages/MenuPage.cpp \
+    src/pages/SearchPage.cpp \
+    src/pages/MapPage.cpp \
+    src/pages/UserPage.cpp \
+    src/pages/CheckoutPage.cpp \
+    src/pages/InfoPage.cpp
+
+
+
+# 外部库
+INCLUDEPATH += $$PWD/lib/
+
+HEADERS += \
+    $$PWD/lib/QRCodeGenerator/qrcodegen.h \
+    widgets/CabinClassBookingDialog.h \
+    widgets/OrderDetailsDialog.h \
+    widgets/SearchableComboBox.h
+
+SOURCES += \
+    $$PWD/lib/QRCodeGenerator/qrcodegen.cpp \
+    widgets/CabinClassBookingDialog.cpp \
+    widgets/OrderDetailsDialog.cpp \
+    widgets/SearchableComboBox.cpp
+
+
+
 
 FORMS += \
     ui/mappage.ui \
