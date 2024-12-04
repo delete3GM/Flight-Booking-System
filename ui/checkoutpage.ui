@@ -23,14 +23,14 @@
    <property name="geometry">
     <rect>
      <x>100</x>
-     <y>180</y>
+     <y>190</y>
      <width>51</width>
      <height>21</height>
     </rect>
    </property>
    <property name="font">
     <font>
-     <pointsize>13</pointsize>
+     <pointsize>14</pointsize>
     </font>
    </property>
    <property name="text">
@@ -50,7 +50,7 @@
    <property name="geometry">
     <rect>
      <x>270</x>
-     <y>80</y>
+     <y>110</y>
      <width>231</width>
      <height>41</height>
     </rect>
@@ -59,6 +59,18 @@
     <font>
      <pointsize>14</pointsize>
     </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLineEdit {  
+        border: 2px solid #4A90E2;  /* 蓝色粗边框 */  
+        border-radius: 8px;  /* 圆角 */  
+        padding: 5px;  /* 内边距 */  
+        background-color: white;  
+    }  
+    
+    QLineEdit:focus {  
+        border-color: #2C3E50;  /* 获得焦点时边框颜色变化 */  
+    }  </string>
    </property>
    <property name="text">
     <string/>
@@ -76,7 +88,25 @@
    <property name="font">
     <font>
      <pointsize>15</pointsize>
+     <bold>true</bold>
     </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+    background-color: #cccccc; /* 蓝色背景 */
+    border-radius: 20px; /* 圆角大小为10像素 */
+    border: none; /* 无边框 */
+    color: #ffffff; /* 字体颜色为白色 */
+    font-weight: bold; /* 字体加粗 */
+}
+
+QPushButton:hover {
+    background-color: #bbbbbb; /* 鼠标悬停时的深蓝色背景 */
+}
+
+QPushButton:pressed {
+    background-color: #aaaaaa; /* 按钮被按下时的更深蓝色背景 */
+}</string>
    </property>
    <property name="text">
     <string>取消</string>
@@ -94,7 +124,25 @@
    <property name="font">
     <font>
      <pointsize>15</pointsize>
+     <bold>true</bold>
     </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+    background-color: #3498db; /* 蓝色背景 */
+    border-radius: 20px; /* 圆角大小为10像素 */
+    border: none; /* 无边框 */
+    color: #ffffff; /* 字体颜色为白色 */
+    font-weight: bold; /* 字体加粗 */
+}
+
+QPushButton:hover {
+    background-color: #2980b9; /* 鼠标悬停时的深蓝色背景 */
+}
+
+QPushButton:pressed {
+    background-color: #2c3e50; /* 按钮被按下时的更深蓝色背景 */
+}</string>
    </property>
    <property name="text">
     <string>提交</string>
@@ -104,7 +152,7 @@
    <property name="geometry">
     <rect>
      <x>80</x>
-     <y>80</y>
+     <y>110</y>
      <width>161</width>
      <height>41</height>
     </rect>
@@ -113,6 +161,18 @@
     <font>
      <pointsize>14</pointsize>
     </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLineEdit {  
+        border: 2px solid #4A90E2;  /* 蓝色粗边框 */  
+        border-radius: 8px;  /* 圆角 */  
+        padding: 5px;  /* 内边距 */  
+        background-color: white;  
+    }  
+    
+    QLineEdit:focus {  
+        border-color: #2C3E50;  /* 获得焦点时边框颜色变化 */  
+    }  </string>
    </property>
    <property name="inputMask">
     <string/>
@@ -125,7 +185,7 @@
    <property name="geometry">
     <rect>
      <x>240</x>
-     <y>170</y>
+     <y>180</y>
      <width>261</width>
      <height>41</height>
     </rect>
@@ -134,6 +194,18 @@
     <font>
      <pointsize>14</pointsize>
     </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLineEdit {  
+        border: 2px solid #4A90E2;  /* 蓝色粗边框 */  
+        border-radius: 8px;  /* 圆角 */  
+        padding: 5px;  /* 内边距 */  
+        background-color: white;  
+    }  
+    
+    QLineEdit:focus {  
+        border-color: #2C3E50;  /* 获得焦点时边框颜色变化 */  
+    }  </string>
    </property>
   </widget>
   <widget class="QLabel" name="flightInfo">
@@ -153,7 +225,16 @@
     </font>
    </property>
    <property name="styleSheet">
-    <string notr="true">QLabel { border: 1px solid black; }</string>
+    <string notr="true"> QLabel {  
+        border: 2px solid #bdc3c7;  
+        border-radius: 10px;  
+        background-color: #ecf0f1;  
+        padding: 6px;  
+    }  
+    QLabel:hover {  
+        border-color: #3498db;  
+        background-color: #f1f8ff;  
+    }  </string>
    </property>
    <property name="text">
     <string/>
@@ -166,7 +247,7 @@
    <property name="geometry">
     <rect>
      <x>80</x>
-     <y>260</y>
+     <y>250</y>
      <width>421</width>
      <height>41</height>
     </rect>
@@ -176,19 +257,31 @@
      <pointsize>14</pointsize>
     </font>
    </property>
+   <property name="styleSheet">
+    <string notr="true">QLineEdit {  
+        border: 2px solid #4A90E2;  /* 蓝色粗边框 */  
+        border-radius: 8px;  /* 圆角 */  
+        padding: 5px;  /* 内边距 */  
+        background-color: white;  
+    }  
+    
+    QLineEdit:focus {  
+        border-color: #2C3E50;  /* 获得焦点时边框颜色变化 */  
+    }  </string>
+   </property>
   </widget>
   <widget class="QRadioButton" name="isFemale">
    <property name="geometry">
     <rect>
      <x>160</x>
-     <y>180</y>
+     <y>190</y>
      <width>72</width>
      <height>21</height>
     </rect>
    </property>
    <property name="font">
     <font>
-     <pointsize>13</pointsize>
+     <pointsize>14</pointsize>
     </font>
    </property>
    <property name="text">
@@ -198,8 +291,8 @@
   <widget class="QLabel" name="passenger_title">
    <property name="geometry">
     <rect>
-     <x>110</x>
-     <y>20</y>
+     <x>70</x>
+     <y>30</y>
      <width>81</width>
      <height>41</height>
     </rect>
@@ -222,6 +315,29 @@
      <height>141</height>
     </rect>
    </property>
+   <property name="styleSheet">
+    <string notr="true"> QScrollArea {  
+        border: 2px solid #bdc3c7;  /* 浅灰边框 */  
+        border-radius: 4px;  
+        background-color: #f5f5f5;  /* 淡灰背景 */  
+    }  
+    
+    QScrollArea QScrollBar:vertical {  
+        width: 10px;  
+        background: #f1f1f1;  
+        border-radius: 5px;  
+    }  
+    
+    QScrollArea QScrollBar::handle:vertical {  
+        background: #3498db;  
+        min-height: 20px;  
+        border-radius: 5px;  
+    }  
+    
+    QScrollArea QScrollBar::handle:vertical:hover {  
+        background: #2980b9;  
+    }  </string>
+   </property>
    <property name="widgetResizable">
     <bool>true</bool>
    </property>
@@ -233,8 +349,8 @@
      <rect>
       <x>0</x>
       <y>0</y>
-      <width>229</width>
-      <height>139</height>
+      <width>227</width>
+      <height>137</height>
      </rect>
     </property>
    </widget>
@@ -262,7 +378,16 @@
     </rect>
    </property>
    <property name="styleSheet">
-    <string notr="true">QLabel { border: 1px solid black; }</string>
+    <string notr="true"> QLabel {  
+        border: 2px solid #bdc3c7;  
+        border-radius: 10px;  
+        background-color: #ecf0f1;  
+        padding: 6px;  
+    }  
+    QLabel:hover {  
+        border-color: #3498db;  
+        background-color: #f1f8ff;  
+    }  </string>
    </property>
    <property name="text">
     <string/>
@@ -310,6 +435,55 @@
     <string>高档餐食</string>
    </property>
   </widget>
+  <widget class="QLabel" name="flightInfo_2">
+   <property name="geometry">
+    <rect>
+     <x>60</x>
+     <y>90</y>
+     <width>461</width>
+     <height>221</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>爱奇艺黑体</family>
+     <pointsize>12</pointsize>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true"> QLabel {  
+        border: 2px solid #000000;  
+        border-radius: 10px;  
+        background-color: #ffffff;  
+        padding: 6px;  
+
+    }  </string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignmentFlag::AlignCenter</set>
+   </property>
+  </widget>
+  <zorder>flightInfo_2</zorder>
+  <zorder>isMale</zorder>
+  <zorder>givenname</zorder>
+  <zorder>cancelBtn</zorder>
+  <zorder>submitBtn</zorder>
+  <zorder>familyname</zorder>
+  <zorder>passenger_phone</zorder>
+  <zorder>flightInfo</zorder>
+  <zorder>passenger_id</zorder>
+  <zorder>isFemale</zorder>
+  <zorder>passenger_title</zorder>
+  <zorder>historyArea</zorder>
+  <zorder>label</zorder>
+  <zorder>foodLbl</zorder>
+  <zorder>noFoodBtn</zorder>
+  <zorder>normalFoodBtn</zorder>
+  <zorder>plusFoodBtn</zorder>
  </widget>
  <resources/>
  <connections/>

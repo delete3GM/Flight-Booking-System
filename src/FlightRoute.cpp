@@ -4,17 +4,9 @@
 
 FlightRoute::FlightRoute() {}
 
-
-
 FlightRoute::FlightRoute(const FlightRoute& other) {
     *this = other; // 使用拷贝赋值操作符
 }
-
-// FlightRoute::FlightRoute(const QVector<Flight>& initFlights) {
-//     foreach (const Flight& flight, initFlights) {
-//         flights.append(new Flight(flight));
-//     }
-// }
 
 void FlightRoute::append(std::shared_ptr<Flight> flight) {
     flights.push_back(flight);
@@ -25,11 +17,19 @@ const QVector<std::shared_ptr<Flight>>& FlightRoute::getFlights() const {
 }
 
 double FlightRoute::getTotalPrice() const {
-    double total = 0.0;
-    for (const std::shared_ptr<Flight> &flight : flights) {
-        total += flight->getPrice();
+    if (flights.isEmpty()) return 0.0;
+
+    double totalPrice = 0.0;
+    for (const auto& flight : flights) {
+        totalPrice += flight->getPrice();
     }
-    return total;
+    if (flights.size() == 2) {
+        totalPrice /= 1.5;
+    } else if (flights.size() == 3) {
+        totalPrice /= 1.9;
+    } else if (flights.size() > 3)
+        totalPrice /= 2.3;
+    return totalPrice;
 }
 
 int FlightRoute::getTotalFlightTime() const {

@@ -16,11 +16,11 @@ class FlightNetwork : public QObject {
 
 private:
     QVector<City*> cities;
-    QMap<QString, City*> cityMap;
+    QHash<QString, City*> cityMap;
+    QMap<QPair<QString, QString>, double> directFlightPrices;
 
 public:
     explicit FlightNetwork(QObject* parent = nullptr);
-    //~FlightNetwork();
     void clearData();
 
     QVector<City*> getCities()const;
@@ -33,12 +33,11 @@ public:
     QVector<FlightRoute> searchFlightsDFS(const QString& departureCity, const QString& arrivalCity, const QDate& selectedDate);
     void dfs(const QString& arrivalCity, const QDate& selectedDate, City* currentCity,
              FlightRoute& path, QVector<FlightRoute>& allPaths, QSet<City*>& visited,int depth);
+    double getDirectFlightPrice(const QString& departureCity, const QString& arrivalCity);
+    void precomputeDirectFlightPrices();
 
-    QVector<FlightRoute> searchRecommendFlights(const QVector<Flight>& allFlights, const User& user);
-    bool findFirstRoute(const QString& arrivalCity, City* currentCity, FlightRoute& currentPath, FlightRoute& foundRoute,
-                        QSet<City*>& visited, int depth);
-    QVector<FlightRoute> searchRecommendation(const QVector<QString>& cityList);
-    FlightRoute findSingleRoute(const QString& departureCity, const QString& arrivalCity);
+    QVector<FlightRoute> searchRecommendation(const QVector<QString>& cityList, const User user);
+    FlightRoute findSingleRoute(const QString& departureCity, const QString& arrivalCity, const int depth);
     bool dfs2(const QString& arrivalCity,
                             City* currentCity,
                             FlightRoute& path,
@@ -46,5 +45,15 @@ public:
 
     void readFlightFromFile(const QString& file);
     void writeFlightToFile(const QString& filename);
+
+    void dfsRecommendation(
+        const QString& arrivalCity,
+        City* currentCity,
+        FlightRoute& path,
+        QVector<FlightRoute>& recommendations,
+        QSet<City*>& visited,
+        int depth
+        );
+    bool hasCityFlights(City *city);
 };
 

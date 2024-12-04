@@ -32,7 +32,7 @@
    <property name="geometry">
     <rect>
      <x>370</x>
-     <y>240</y>
+     <y>250</y>
      <width>221</width>
      <height>31</height>
     </rect>
@@ -41,6 +41,18 @@
     <font>
      <pointsize>11</pointsize>
     </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLineEdit {  
+        border: 2px solid #4A90E2;  /* 蓝色粗边框 */  
+        border-radius: 8px;  /* 圆角 */  
+        padding: 5px;  /* 内边距 */  
+        background-color: white;  
+    }  
+    
+    QLineEdit:focus {  
+        border-color: #2C3E50;  /* 获得焦点时边框颜色变化 */  
+    }  </string>
    </property>
    <property name="alignment">
     <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
@@ -69,6 +81,18 @@
      <pointsize>11</pointsize>
     </font>
    </property>
+   <property name="styleSheet">
+    <string notr="true">QLineEdit {  
+        border: 2px solid #4A90E2;  /* 蓝色粗边框 */  
+        border-radius: 8px;  /* 圆角 */  
+        padding: 5px;  /* 内边距 */  
+        background-color: white;  
+    }  
+    
+    QLineEdit:focus {  
+        border-color: #2C3E50;  /* 获得焦点时边框颜色变化 */  
+    }  </string>
+   </property>
    <property name="inputMask">
     <string/>
    </property>
@@ -79,16 +103,17 @@
   <widget class="QLabel" name="loginTitleLbl">
    <property name="geometry">
     <rect>
-     <x>340</x>
-     <y>100</y>
-     <width>281</width>
+     <x>280</x>
+     <y>70</y>
+     <width>401</width>
      <height>51</height>
     </rect>
    </property>
    <property name="font">
     <font>
      <family>幼圆</family>
-     <pointsize>30</pointsize>
+     <pointsize>40</pointsize>
+     <bold>true</bold>
     </font>
    </property>
    <property name="styleSheet">
@@ -190,7 +215,7 @@ QPushButton:pressed {
    <property name="geometry">
     <rect>
      <x>310</x>
-     <y>240</y>
+     <y>250</y>
      <width>81</width>
      <height>31</height>
     </rect>

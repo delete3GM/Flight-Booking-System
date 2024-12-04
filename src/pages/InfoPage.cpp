@@ -23,10 +23,10 @@ void InfoPage::setupTreeWidget() {
     ui->flightTreeWidget->setColumnCount(5);
     ui->flightTreeWidget->setHeaderLabels({"  航班信息", "", "", "", ""});
     ui->flightTreeWidget->setRootIsDecorated(false);
-    ui->flightTreeWidget->setStyleSheet(
-    "QTreeWidget::item { height: 60px; border-top: 2px solid lightblue;}"
-    "QTreeWidget::item:selected { background-color: lightblue; }"
-	"QTreeWidget::item:hover { background-color: lightblue; }");
+ //    ui->flightTreeWidget->setStyleSheet(
+ //    "QTreeWidget::item { height: 60px; border-top: 2px solid lightblue;}"
+ //    "QTreeWidget::item:selected { background-color: lightblue; }"
+    // "QTreeWidget::item:hover { background-color: lightblue; }");
 }
 
 void InfoPage::initInfoPage() {

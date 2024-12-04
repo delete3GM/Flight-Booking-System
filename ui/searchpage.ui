@@ -55,7 +55,7 @@
    <property name="geometry">
     <rect>
      <x>230</x>
-     <y>90</y>
+     <y>80</y>
      <width>41</width>
      <height>41</height>
     </rect>
@@ -149,9 +149,9 @@ QPushButton:pressed {
    <property name="geometry">
     <rect>
      <x>530</x>
-     <y>260</y>
+     <y>240</y>
      <width>171</width>
-     <height>231</height>
+     <height>251</height>
     </rect>
    </property>
    <property name="font">
@@ -160,7 +160,8 @@ QPushButton:pressed {
     </font>
    </property>
    <property name="styleSheet">
-    <string notr="true">QLabel { border: 1px solid black; }</string>
+    <string notr="true">QLabel { border: 2px solid #4A90E2;  /* 蓝色粗边框 */  
+        border-radius: 8px;  /* 圆角 */ }</string>
    </property>
    <property name="text">
     <string/>
@@ -191,9 +192,9 @@ QPushButton:pressed {
    <property name="geometry">
     <rect>
      <x>740</x>
-     <y>260</y>
+     <y>240</y>
      <width>171</width>
-     <height>231</height>
+     <height>251</height>
     </rect>
    </property>
    <property name="font">
@@ -202,7 +203,8 @@ QPushButton:pressed {
     </font>
    </property>
    <property name="styleSheet">
-    <string notr="true">QLabel { border: 1px solid black; }</string>
+    <string notr="true">QLabel { border: 2px solid #4A90E2;  /* 蓝色粗边框 */  
+        border-radius: 8px;  /* 圆角 */  }</string>
    </property>
    <property name="text">
     <string/>
@@ -215,7 +217,7 @@ QPushButton:pressed {
    <property name="geometry">
     <rect>
      <x>540</x>
-     <y>230</y>
+     <y>210</y>
      <width>161</width>
      <height>31</height>
     </rect>
@@ -233,7 +235,7 @@ QPushButton:pressed {
    <property name="geometry">
     <rect>
      <x>750</x>
-     <y>230</y>
+     <y>210</y>
      <width>161</width>
      <height>31</height>
     </rect>
@@ -251,10 +253,44 @@ QPushButton:pressed {
    <property name="geometry">
     <rect>
      <x>50</x>
-     <y>260</y>
+     <y>240</y>
      <width>461</width>
-     <height>231</height>
+     <height>251</height>
     </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QTreeWidget {  
+        background-color: #e6f2ff;  
+        border: 2px solid #6ab0ff;  
+        border-radius: 10px;   
+    }  
+    
+    QTreeWidget::item {  
+
+        border-bottom: 1px solid #b3d7ff;  
+        color: #2c3e50;  
+    }  
+    
+    QTreeWidget::item:alternate {  
+        background-color: #f0f6ff;  
+    }  
+    
+    QTreeWidget::item:hover {  
+        background-color: #d6e9ff;  
+    }  
+    
+    QTreeWidget::item:selected {  
+        background-color: #3498db;  
+        color: white;  
+        border-radius: 5px;  
+    }  
+    
+    QTreeWidget QHeaderView::section {  
+        background-color: #4a90e2;  
+        color: white;  
+        border: none;  
+        font-weight: bold;  
+    }  </string>
    </property>
    <column>
     <property name="text">
@@ -272,7 +308,9 @@ QPushButton:pressed {
     </rect>
    </property>
    <property name="styleSheet">
-    <string notr="true">QLabel { border: 1px solid black; }</string>
+    <string notr="true">QLabel { 
+border: 2px solid #4A90E2;  /* 蓝色粗边框 */  
+        border-radius: 8px;  /* 圆角 */ }</string>
    </property>
    <property name="text">
     <string/>
@@ -306,7 +344,11 @@ QPushButton:pressed {
     </rect>
    </property>
    <property name="styleSheet">
-    <string notr="true">QLabel { border: 1px solid black; }</string>
+    <string notr="true">QLabel { 
+background-color: #ffffff;
+border: 2px solid #4A90E2;  /* 蓝色粗边框 */  
+        border-radius: 8px;  /* 圆角 */ 
+}</string>
    </property>
    <property name="text">
     <string/>
@@ -339,8 +381,8 @@ QPushButton:pressed {
   <zorder>label_4</zorder>
   <zorder>recTree</zorder>
   <zorder>label_6</zorder>
-  <zorder>calendarWidget</zorder>
   <zorder>graphLbl</zorder>
+  <zorder>calendarWidget</zorder>
  </widget>
  <resources/>
  <connections/>

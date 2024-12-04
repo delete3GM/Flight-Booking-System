@@ -49,6 +49,9 @@ void LoginPage::initLoginPage() {
     palette.setBrush(QPalette::Window, QBrush(backgroundImage.scaled(this->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation)));
     this->setPalette(palette);
     this->setAutoFillBackground(true);
+
+    mainWindow->network.clearData();
+    mainWindow->network.readFlightFromFile(FLIGHT_FILE);
 }
 
 QString LoginPage::getID() const {

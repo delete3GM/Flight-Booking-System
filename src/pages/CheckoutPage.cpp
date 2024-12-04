@@ -253,19 +253,19 @@ void CheckoutPage::resetGenderRadioButtons() {
 }
 
 void CheckoutPage::changeNoFood() {
-    ui->foodLbl->setText("请选择餐食：无餐食\n需额外支付 0 元");
+    ui->foodLbl->setText("已选择：无餐食\n需额外支付 0 元");
     meal = "无餐食";
     ui->flightInfo->setText(detailInfo());
 }
 
 void CheckoutPage::changeNormalFood() {
-    ui->foodLbl->setText("请选择餐食：标准餐\n需额外支付 " + QString::number(NORMAL_MEAL_PRICE) + "元");
+    ui->foodLbl->setText("已选择：标准餐\n需额外支付 " + QString::number(NORMAL_MEAL_PRICE) + "元");
     meal = "标准餐";
     ui->flightInfo->setText(detailInfo());
 }
 
 void CheckoutPage::changePlusFood() {
-    ui->foodLbl->setText("请选择餐食：豪华餐\n需额外支付 " + QString::number(PLUS_MEAL_PRICE) + "元");
+    ui->foodLbl->setText("已选择：豪华餐\n需额外支付 " + QString::number(PLUS_MEAL_PRICE) + "元");
     meal = "豪华餐";
     ui->flightInfo->setText(detailInfo());
 }

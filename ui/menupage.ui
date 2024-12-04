@@ -31,7 +31,25 @@
    <property name="font">
     <font>
      <pointsize>16</pointsize>
+     <bold>true</bold>
     </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+    background-color: #ffffff; /* 蓝色背景 */
+    border-radius: 20px; /* 圆角大小为10像素 */
+    border: none; /* 无边框 */
+    color: #000000; /* 字体颜色为白色 */
+    font-weight: bold; /* 字体加粗 */
+}
+
+QPushButton:hover {
+    background-color: #cccccc; /* 鼠标悬停时的深蓝色背景 */
+}
+
+QPushButton:pressed {
+    background-color: #aaaaaa; /* 按钮被按下时的更深蓝色背景 */
+}</string>
    </property>
    <property name="text">
     <string>退出系统</string>
@@ -49,7 +67,25 @@
    <property name="font">
     <font>
      <pointsize>16</pointsize>
+     <bold>true</bold>
     </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+    background-color: #ffffff; /* 蓝色背景 */
+    border-radius: 20px; /* 圆角大小为10像素 */
+    border: none; /* 无边框 */
+    color: #000000; /* 字体颜色为白色 */
+    font-weight: bold; /* 字体加粗 */
+}
+
+QPushButton:hover {
+    background-color: #cccccc; /* 鼠标悬停时的深蓝色背景 */
+}
+
+QPushButton:pressed {
+    background-color: #aaaaaa; /* 按钮被按下时的更深蓝色背景 */
+}</string>
    </property>
    <property name="text">
     <string>个人中心</string>
@@ -67,10 +103,28 @@
    <property name="font">
     <font>
      <pointsize>16</pointsize>
+     <bold>true</bold>
     </font>
    </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+    background-color: #ffffff; /* 蓝色背景 */
+    border-radius: 20px; /* 圆角大小为10像素 */
+    border: none; /* 无边框 */
+    color: #000000; /* 字体颜色为白色 */
+    font-weight: bold; /* 字体加粗 */
+}
+
+QPushButton:hover {
+    background-color: #cccccc; /* 鼠标悬停时的深蓝色背景 */
+}
+
+QPushButton:pressed {
+    background-color: #aaaaaa; /* 按钮被按下时的更深蓝色背景 */
+}</string>
+   </property>
    <property name="text">
-    <string>订票中心</string>
+    <string>订票大厅</string>
    </property>
   </widget>
   <widget class="QLabel" name="userLbl">
@@ -118,6 +172,55 @@
     <string/>
    </property>
   </widget>
+  <widget class="QLabel" name="label">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>961</width>
+     <height>91</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">  QLabel {  
+        background: qlineargradient(  
+            x1:0, y1:0, x2:0, y2:1,   
+            stop:0 #87CEEB,   
+            stop:0.7 #87CEEB,   
+            stop:1 rgba(135, 206, 235, 0)  
+        );  
+    }  </string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QLabel" name="welcomeLbl">
+   <property name="geometry">
+    <rect>
+     <x>80</x>
+     <y>20</y>
+     <width>521</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>20</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <zorder>label</zorder>
+  <zorder>exitBtn</zorder>
+  <zorder>userBtn</zorder>
+  <zorder>searchBtn</zorder>
+  <zorder>userLbl</zorder>
+  <zorder>iconLbl</zorder>
+  <zorder>planeLbl</zorder>
+  <zorder>welcomeLbl</zorder>
  </widget>
  <resources/>
  <connections/>

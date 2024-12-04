@@ -40,6 +40,34 @@
      <height>401</height>
     </size>
    </property>
+   <property name="styleSheet">
+    <string notr="true">QTabWidget::pane {  
+        background-color: #e6f2ff;  
+        border: 2px solid #6ab0ff;  
+        border-radius: 10px;  
+    }  
+    
+    QTabBar::tab {  
+        background-color: #f0f6ff;  
+        color: #2c3e50;  
+        padding: 8px 16px;  
+        margin-right: 4px;  
+        border-top-left-radius: 8px;  
+        border-top-right-radius: 8px;  
+        min-width: 100px;  
+        font-weight: bold;  
+    }  
+    
+    QTabBar::tab:selected {  
+        background-color: #3498db;  
+        color: white;  
+    }  
+    
+    QTabBar::tab:hover {  
+        background-color: #5dade2;  
+        color: white;  
+    }  </string>
+   </property>
    <property name="currentIndex">
     <number>0</number>
    </property>
@@ -93,7 +121,32 @@
    <property name="font">
     <font>
      <pointsize>13</pointsize>
+     <bold>true</bold>
     </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true"> QPushButton {  
+        background-color: white;  
+        color: #3498db;  
+        border: 2px solid;  
+        border-image: qlineargradient(  
+            x1:0, y1:0, x2:1, y2:0,   
+            stop:0 #3498db,   
+            stop:1 #2980b9  
+        ) 1;  
+
+        border-radius: 8px;  
+        font-weight: bold;  
+    }  
+    
+    QPushButton:hover {  
+        color: white;  
+        background-color: #3498db;  
+    }  
+    
+    QPushButton:pressed {  
+        background-color: #2980b9;  
+    }  </string>
    </property>
    <property name="text">
     <string>  国内</string>
@@ -152,7 +205,32 @@
    <property name="font">
     <font>
      <pointsize>13</pointsize>
+     <bold>true</bold>
     </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true"> QPushButton {  
+        background-color: white;  
+        color: #3498db;  
+        border: 2px solid;  
+        border-image: qlineargradient(  
+            x1:0, y1:0, x2:1, y2:0,   
+            stop:0 #3498db,   
+            stop:1 #2980b9  
+        ) 1;  
+
+        border-radius: 8px;  
+        font-weight: bold;  
+    }  
+    
+    QPushButton:hover {  
+        color: white;  
+        background-color: #3498db;  
+    }  
+    
+    QPushButton:pressed {  
+        background-color: #2980b9;  
+    }  </string>
    </property>
    <property name="text">
     <string>  国际</string>
@@ -176,6 +254,37 @@
      <width>80</width>
      <height>21</height>
     </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {  
+        background: qlineargradient(  
+            x1:0, y1:0, x2:1, y2:0,   
+            stop:0 #e74c3c,   
+            stop:1 #c0392b  
+        );  
+        color: white;  
+        border: none;  
+
+        border-radius: 8px;  
+        font-weight: bold;  
+        font-size: 12px;  
+    }  
+    
+    QPushButton:hover {  
+        background: qlineargradient(  
+            x1:0, y1:0, x2:1, y2:0,   
+            stop:0 #ff6b6b,   
+            stop:1 #e74c3c  
+        );  
+    }  
+    
+    QPushButton:pressed {  
+        background: qlineargradient(  
+            x1:0, y1:0, x2:1, y2:0,   
+            stop:0 #c0392b,   
+            stop:1 #962d22  
+        );  
+    }  </string>
    </property>
    <property name="text">
     <string>清除所有</string>

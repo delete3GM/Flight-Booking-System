@@ -94,7 +94,7 @@ void UserPage::initOrderTab() {
     paidOrdersTreeWidget->setRootIsDecorated(false);
     paidOrdersTreeWidget->setColumnWidth(0, 290);
     paidOrdersTreeWidget->setColumnWidth(1, 140);
-    paidOrdersTreeWidget->setColumnWidth(2, 280);
+    paidOrdersTreeWidget->setColumnWidth(2, 260);
     paidOrdersTreeWidget->setColumnWidth(3, 0);
     paidOrdersTreeWidget->setColumnWidth(4, 70);
     paidOrdersTreeWidget->setColumnWidth(5, 70);

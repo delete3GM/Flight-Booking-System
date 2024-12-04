@@ -48,9 +48,6 @@ void FlightNetwork::addFlight(QString airline, QString flightNumber, QString air
             }
             temp->next = newNode;
         }
-
-        // 更新航班数量
-        depCity->flightNum++;
     }
 }
 
@@ -120,9 +117,6 @@ void FlightNetwork::writeFlightToFile(const QString& filename) {
 }
 
 void FlightNetwork::clearData() {
-    for (auto* city : cities) {
-        city->flightNum = 0;  // 重置航班数量
-    }
     qDeleteAll(cities);
     cities.clear();
 }
@@ -351,88 +345,6 @@ QVector<FlightRoute> FlightNetwork::sortFlights(User user, QVector<FlightRoute> 
     return flights;
 }
 
-QVector<FlightRoute> FlightNetwork::searchRecommendation(const QVector<QString>& cityList, const User user) {
-    QVector<FlightRoute> recommendations;
-    cityMap.clear();
-
-    QVector<QString> workingCityList = cityList;
-    if (workingCityList.size() < 3) {
-        // 按航班数降序排序的城市列表
-        QVector<QPair<QString, int>> cityFlightCounts;
-        for (const auto* city : cities) {
-            if (!workingCityList.contains(city->name)) {
-                cityFlightCounts.append({city->name, city->flightNum});
-            }
-        }
-
-        // 按航班数降序排序
-        std::sort(cityFlightCounts.begin(), cityFlightCounts.end(),
-                  [](const QPair<QString, int>& a, const QPair<QString, int>& b) {
-                      return a.second > b.second;
-                  });
-
-        // 选择航班数最多的城市
-        while (workingCityList.size() < 3 && !cityFlightCounts.isEmpty()) {
-            workingCityList.append(cityFlightCounts.first().first);
-            cityFlightCounts.removeFirst();
-        }
-    }
-
-    for (City* city : cities) {
-        cityMap[city->name] = city;
-    }
-
-    // 线程安全的推荐航班容器
-    QVector<FlightRoute> threadSafeRecommendations;
-    std::atomic<int> recommendationCount{0};
-    const int MAX_THREADS = 10;
-
-    // 互斥锁
-    QMutex recommendationMutex;
-
-    // 线程容器
-    std::vector<std::thread> threads;
-
-    // 并行搜索推荐航班
-    for (int i = 0; i < workingCityList.size(); i++) {
-        for (int j = 0; j < workingCityList.size(); j++) {
-            if (i == j || threads.size() >= MAX_THREADS || recommendationCount >= MAX_RECOMMENDATIONS) continue;
-
-            threads.emplace_back([&, i, j]() {
-                QString departureCityName = workingCityList[i];
-                QString arrivalCityName = workingCityList[j];
-
-                City* departureCity = cityMap.value(departureCityName, nullptr);
-                City* arrivalCity = cityMap.value(arrivalCityName, nullptr);
-
-                if (departureCity && arrivalCity) {
-                    FlightRoute recommendedRoute = findSingleRoute(departureCity->name, arrivalCity->name, int(user.getAvgTransNum()));
-
-                    if (!recommendedRoute.isEmpty()) {
-                        QMutexLocker locker(&recommendationMutex);
-
-                        // 检查是否超过最大推荐数量
-                        if (recommendationCount < MAX_RECOMMENDATIONS) {
-                            threadSafeRecommendations.append(recommendedRoute);
-                            recommendationCount ++;
-                            qDebug() << "rec:" << recommendedRoute.showFlightsInfo();
-                        }
-                    }
-                }
-            });
-        }
-    }
-
-    // 等待所有线程完成
-    for (auto& thread : threads) {
-        if (thread.joinable()) {
-            thread.join();
-        }
-    }
-
-    return threadSafeRecommendations;
-}
-
 FlightRoute FlightNetwork::findSingleRoute(const QString& departureCity, const QString& arrivalCity, const int depth) {
 
     City* startCity = cityMap.value(departureCity, nullptr);
@@ -493,4 +405,54 @@ bool FlightNetwork::dfs2(const QString& arrivalCity,
 }
 
 
+QVector<FlightRoute> FlightNetwork::searchRecommendation(const QVector<QString>& cityList, const User user) {
+    QVector<FlightRoute> recommendations;
+    cityMap.clear();
 
+    QVector<QString> workingCityList = cityList;
+    if (workingCityList.size() < 3) {
+        QVector<QString> availableCities;
+        for (const auto* city : cities) {
+            if (!workingCityList.contains(city->name)) {
+                availableCities.append(city->name);
+            }
+        }
+
+        std::random_device rd;
+        std::mt19937 gen(rd());
+
+        while (workingCityList.size() <= 3 && !availableCities.isEmpty()) {
+            std::uniform_int_distribution<> dis(0, availableCities.size() - 1);
+            int randomIndex = dis(gen);
+            workingCityList.append(availableCities[randomIndex]);
+            availableCities.removeAt(randomIndex);
+        }
+    }
+
+    for (City* city : cities) {
+        cityMap[city->name] = city;
+    }
+
+    for (int i = 0; i < workingCityList.size(); i++) {
+        for (int j = 0; j < workingCityList.size(); j++) {
+            if (i == j) continue;
+
+            QString departureCityName = workingCityList[i];
+            QString arrivalCityName = workingCityList[j];
+
+            City* departureCity = cityMap.value(departureCityName, nullptr);
+            City* arrivalCity = cityMap.value(arrivalCityName, nullptr);
+
+            if (departureCity && arrivalCity) {
+                FlightRoute recommendedRoute = findSingleRoute(departureCity->name, arrivalCity->name, int(user.getAvgTransNum()));
+
+                if (!recommendedRoute.isEmpty()) {
+                    recommendations.append(recommendedRoute);
+                    qDebug()<<"rec:"<<recommendedRoute.showFlightsInfo();
+                    if(recommendations.size() >= RECOM_NUM) return recommendations;
+                }
+            }
+        }
+    }
+    return recommendations;
+}

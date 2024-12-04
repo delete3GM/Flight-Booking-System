@@ -4,6 +4,7 @@
 MenuPage::MenuPage(Flight_Ticket_Management_System *mainWindow, QWidget *parent)
     : QWidget(parent), ui(new Ui::MenuPage), mainWindow(mainWindow) {
     ui->setupUi(this);
+    //loadRecommendation();
 
     connect(ui->searchBtn, &QPushButton::released, this, &MenuPage::menu2search);
     connect(ui->userBtn, &QPushButton::released, this, &MenuPage::menu2user);
@@ -20,6 +21,9 @@ MenuPage::MenuPage(Flight_Ticket_Management_System *mainWindow, QWidget *parent)
     palette.setBrush(QPalette::Window, QBrush(backgroundImage.scaled(this->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation)));
     this->setPalette(palette);
     this->setAutoFillBackground(true);
+
+    QString welcomeInfo = "欢迎回来，用户" + mainWindow->currentUser.getID() + "！";
+    ui->welcomeLbl->setText(welcomeInfo);
 }
 
 MenuPage::~MenuPage() {
@@ -36,3 +40,5 @@ void MenuPage::menu2user() {
 void MenuPage::Exit() {
     mainWindow->exitWindow();
 }
+
+

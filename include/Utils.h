@@ -32,8 +32,8 @@ void configWebEngine(QWebEngineView * we);
 #define USER_FILE                           "../data/user.txt"
 #define ORDER_PATH                          "../data/order/"
 
-#define MAX_DEPTH                           3
-#define RECOM_NUM                           6
+#define MAX_DEPTH                           2
+#define MAX_RECOMMENDATIONS                 6
 
 #define NORMAL_MEAL_PRICE                   35
 #define PLUS_MEAL_PRICE                     80

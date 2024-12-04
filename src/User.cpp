@@ -75,11 +75,8 @@ void User::updateFrequentCities() {
     foreach (const Order &order, orders) {
         const FlightRoute &route = order.getFlightRoute();
         const QVector<std::shared_ptr<Flight>> flights = route.getFlights();
-       // foreach (const Flight* flight, flights) {
-            // 假设出发城市是用户访问的城市
         cityFrequency[flights.first()->getDepartureCity()]++;
         cityFrequency[flights.last()->getArrivalCity()]++;
-       // }
     }
 
     // 将QMap转换为QList，以便排序
@@ -127,7 +124,14 @@ void User::loadUserOrders() {
 
 void User::updateVIPLevel() {
     double cost = orderManager.getTotalConsumption();
-    VIP = cost / 15000;
+    int level = 0;
+    double totalRequired = 10000;
+
+    while (level < 10 && cost >= totalRequired) {
+        totalRequired += (level + 2) * 5000;
+        level++;
+    }
+    VIP = level - 1;
 }
 
 

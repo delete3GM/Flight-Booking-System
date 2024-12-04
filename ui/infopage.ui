@@ -102,7 +102,38 @@
     </rect>
    </property>
    <property name="styleSheet">
-    <string notr="true"/>
+    <string notr="true">QTreeWidget {  
+        background-color: #e6f2ff;  
+        border: 2px solid #6ab0ff;  
+        border-radius: 10px;   
+    }  
+    
+    QTreeWidget::item {  
+
+        border-bottom: 1px solid #b3d7ff;  
+        color: #2c3e50;  
+    }  
+    
+    QTreeWidget::item:alternate {  
+        background-color: #f0f6ff;  
+    }  
+    
+    QTreeWidget::item:hover {  
+        background-color: #d6e9ff;  
+    }  
+    
+    QTreeWidget::item:selected {  
+        background-color: #3498db;  
+        color: white;  
+        border-radius: 5px;  
+    }  
+    
+    QTreeWidget QHeaderView::section {  
+        background-color: #4a90e2;  
+        color: white;  
+        border: none;  
+        font-weight: bold;  
+    }  </string>
    </property>
    <column>
     <property name="text">
@@ -184,6 +215,18 @@
      <height>181</height>
     </rect>
    </property>
+   <property name="styleSheet">
+    <string notr="true"> QScrollArea{  
+        border: 2px solid #bdc3c7;  
+        border-radius: 10px;  
+        background-color: #ecf0f1;  
+        padding: 6px;  
+    }  
+     QScrollArea:hover {  
+        border-color: #3498db;  
+
+    }  </string>
+   </property>
    <property name="widgetResizable">
     <bool>true</bool>
    </property>
@@ -192,8 +235,8 @@
      <rect>
       <x>0</x>
       <y>0</y>
-      <width>129</width>
-      <height>179</height>
+      <width>115</width>
+      <height>165</height>
      </rect>
     </property>
    </widget>
@@ -213,7 +256,16 @@
     </font>
    </property>
    <property name="styleSheet">
-    <string notr="true">QLabel { border: 1px solid black; }
+    <string notr="true"> QLabel {  
+        border: 2px solid #bdc3c7;  
+        border-radius: 10px;  
+        background-color: #ecf0f1;  
+        padding: 6px;  
+    }  
+    QLabel:hover {  
+        border-color: #3498db;  
+
+    }  
 </string>
    </property>
    <property name="text">

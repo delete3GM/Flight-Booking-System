@@ -15,14 +15,14 @@ void OrderDetailsDialog::setupUI() {
     QString details = QString("订单号: %1<br>"
                               "日期：%2<br>"
                               "航线: %3<br>"
-                              "舱位: %4<br>"
-                              "餐食：%5<br>"
+                              "舱位: %5<br>"
+                              "餐食：%6<br>"
                               "————————————————<br>"
-                              "乘客姓名: %6<br>"
-                              "证件号：%7<br>"
-                              "联系方式：%8<br>"
+                              "乘客姓名: %7<br>"
+                              "证件号：%8<br>"
+                              "联系方式：%9<br>"
                               "————————————————<br>"
-                              "订单总价: <b><font size=5>%9</font></b>")
+                              "订单总价: <b><font size=5>%10</font></b>")
                           .arg(order.getOrderId())
                           .arg(order.getFlightRoute().getDepartureTime() + " —— " + order.getFlightRoute().getArrivalTime())
                           .arg(order.getFlightRoute().showCityPath())

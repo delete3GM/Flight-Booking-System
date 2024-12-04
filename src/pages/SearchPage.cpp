@@ -27,9 +27,6 @@ SearchPage::~SearchPage() {
 }
 
 void SearchPage::initSearchPage() {
-
-    mainWindow->network.clearData();
-    mainWindow->network.readFlightFromFile(FLIGHT_FILE);
     ui->calendarWidget->hide();
 
     mainWindow->currentUser.updateUserWeight();
@@ -217,18 +214,20 @@ void SearchPage::setDataForReschedule(const QString& dep, const QString& arr, co
 
 void SearchPage::loadRecommendation() {
     QVector<QString> cityList = mainWindow->currentUser.getFrequentCities();
-    QVector<FlightRoute> tempRecommendation = mainWindow->network.searchRecommendation(cityList);
+    QVector<FlightRoute> tempRecommendation = mainWindow->network.searchRecommendation(cityList, mainWindow->currentUser);
     mainWindow->recommendationFlights = mainWindow->network.sortFlights(
         mainWindow->currentUser, tempRecommendation, SORT_BY_PERSON);
 }
 
 void SearchPage::displayRecommendation() {
+
     loadRecommendation();
+
     QVector<FlightRoute> flights = mainWindow->recommendationFlights;
 
     ui->recTree->clear();
     ui->recTree->setColumnCount(6);
-    ui->recTree->setHeaderLabels({"  城市路径", "起飞时间", "降落时间", "总用时", "总票价", "操作"});
+    ui->recTree->setHeaderLabels({"  起降城市", "起飞时间", "降落时间", "总用时", "总票价", "操作"});
     ui->recTree->setUpdatesEnabled(false);
     ui->recTree->header()->setStyleSheet("QHeaderView::section { border: none; }");
 
@@ -236,7 +235,7 @@ void SearchPage::displayRecommendation() {
     for (auto& flightPath : flights) {
         addFlightPathToTree(ui->recTree, flightPath, row);
     }
-    ui->recTree->setColumnWidth(0, 130);
+    ui->recTree->setColumnWidth(0, 110);
     ui->recTree->setColumnWidth(1, 75);
     ui->recTree->setColumnWidth(2, 75);
     ui->recTree->setColumnWidth(3, 70);

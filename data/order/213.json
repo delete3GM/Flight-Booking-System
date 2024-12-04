@@ -1,0 +1,28 @@
+[
+    {
+        "cabinClass": "头等舱",
+        "flightRoute": [
+            {
+                "airline": "英国航空",
+                "arrivalCity": "北京",
+                "arrivalTime": "2024-12-01 18:00",
+                "departureCity": "上海",
+                "departureTime": "2024-12-01 16:47",
+                "flightNumber": "BA6598",
+                "price": 1133,
+                "remainSeatNum": 94
+            }
+        ],
+        "meal": "豪华餐",
+        "orderId": "{8a990c9d-4473-4be2-84f5-a7d7478ac91c}",
+        "passenger": {
+            "familyName": "234",
+            "givenName": "424",
+            "id": "214",
+            "phone": "543",
+            "sex": "Female"
+        },
+        "price": 2935.1600000000003,
+        "status": "已支付"
+    }
+]
