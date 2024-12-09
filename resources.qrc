@@ -18,5 +18,11 @@
         <file>resources/images/snow_icon.png</file>
         <file>resources/images/bg.png</file>
         <file>resources/images/world_map.png</file>
+        <file>web/css/leaflet.css</file>
+        <file>web/html/domestic_routes.html</file>
+        <file>web/html/global_routes.html</file>
+        <file>web/js/leaflet.js</file>
+        <file>web/js/leaflet_geodesic.js</file>
+        <file>web/js/qwebchannel.js</file>
     </qresource>
 </RCC>

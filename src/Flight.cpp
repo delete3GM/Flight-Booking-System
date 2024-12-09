@@ -106,13 +106,18 @@ QString Flight::showInfo() {
     if (price == 0) {
         return QString("");
     }
-    return QString("%1 %2\n%3\n%4->%6\n%5->%7\n")
+    return QString(
+               "<b>%1 ➤ %2</b><br>"
+               "<font color='#555' size='2'>%3 %4(%5)</font><br>"
+               "<font color='#888' size='2'>起飞：%6</font><br>"
+               "<font color='#888' size='2'>到达：%7</font><br><br>"
+               )
+        .arg(departureCity)
+        .arg(arrivalCity)
         .arg(airline)
         .arg(flightNumber)
         .arg(aircraftType)
-        .arg(departureCity)
         .arg(departureTime)
-        .arg(arrivalCity)
         .arg(arrivalTime);
 }
 

@@ -17,17 +17,19 @@ void OrderDetailsDialog::setupUI() {
                               "航线: %3<br>"
                               "舱位: %5<br>"
                               "餐食：%6<br>"
+                              "保险：%7<br>"
                               "————————————————<br>"
-                              "乘客姓名: %7<br>"
-                              "证件号：%8<br>"
-                              "联系方式：%9<br>"
+                              "乘客姓名: %8<br>"
+                              "证件号：%9<br>"
+                              "联系方式：%10<br>"
                               "————————————————<br>"
-                              "订单总价: <b><font size=5>%10</font></b>")
+                              "订单总价: <b><font size=5>%11</font></b>")
                           .arg(order.getOrderId())
                           .arg(order.getFlightRoute().getDepartureTime() + " —— " + order.getFlightRoute().getArrivalTime())
                           .arg(order.getFlightRoute().showCityPath())
                           .arg(order.getCabinClass())
                           .arg(order.getMeal())
+                          .arg(order.getInsurance())
                           .arg(order.getPassenger().getFamilyName() + " " + order.getPassenger().getGivenName())
                           .arg(order.getPassenger().getId())
                           .arg(order.getPassenger().getPhone())

@@ -1,5 +1,4 @@
 #include "pages/InfoPage.h"
-
 #include <QMessageBox>
 #include "Utils.h"
 #include "qboxlayout.h"
@@ -23,10 +22,6 @@ void InfoPage::setupTreeWidget() {
     ui->flightTreeWidget->setColumnCount(5);
     ui->flightTreeWidget->setHeaderLabels({"  航班信息", "", "", "", ""});
     ui->flightTreeWidget->setRootIsDecorated(false);
- //    ui->flightTreeWidget->setStyleSheet(
- //    "QTreeWidget::item { height: 60px; border-top: 2px solid lightblue;}"
- //    "QTreeWidget::item:selected { background-color: lightblue; }"
-    // "QTreeWidget::item:hover { background-color: lightblue; }");
 }
 
 void InfoPage::initInfoPage() {
@@ -100,6 +95,7 @@ void InfoPage::displayFlights(QVector<FlightRoute>& flights) {
         addFlightPathToTree(item, flightPath, row);
         row++;
     }
+
     ui->flightTreeWidget->resizeColumnToContents(0);
     ui->flightTreeWidget->setUpdatesEnabled(true);
     ui->flightTreeWidget->header()->setStyleSheet("QHeaderView::section { border: none; }");
@@ -179,8 +175,8 @@ void InfoPage::addFlightPathToTree(QTreeWidgetItem* item,
         }
 
         childItem->setText(0, flight->getAirline() + " " + flight->getFlightNumber());
-        childItem->setText(1, "出发："+flight->getDepartureTime());
-        childItem->setText(2, "到达："+flight->getArrivalTime());
+        childItem->setText(1, "出发：" + flight->getDepartureTime());
+        childItem->setText(2, "到达：" + flight->getArrivalTime());
 
         double originalFlightPrice = flight->getPrice();
         double discountedFlightPrice = originalFlightPrice * discount;

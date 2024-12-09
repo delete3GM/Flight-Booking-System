@@ -16,8 +16,12 @@ public:
     ~CheckoutPage();
 
     void initCheckout();
+    void initPassengerArea();
+    void initMealBox();
+    void initInsBox();
 
     Passenger createPassenger();
+    void getSelectedPriceRatio();
     Order createOrder(const Passenger& passenger);
     void handleRescheduleOrder();
     void handleNewOrder(const Order& order);
@@ -28,8 +32,8 @@ public:
     void resetGenderRadioButtons();
     void loadPassengerHistory();
     void fillPassengerInfo(const Passenger &passenger);
-    void initPassengerArea();
-    QString detailInfo();
+
+    QString priceInfo();
 
 private:
     Ui::CheckoutPage *ui;
@@ -38,13 +42,13 @@ private:
     QButtonGroup *passengerButtonGroup;
 
     QString meal = "无餐食";
+    QString insurance = "无保险";
 
  private slots:
     void addPassenger();
     void checkout2info();
-    void changeNoFood();
-    void changeNormalFood();
-    void changePlusFood();
+    void updateMealSelection(int index);
+    void updateInsSelection(int index);
 
 
 

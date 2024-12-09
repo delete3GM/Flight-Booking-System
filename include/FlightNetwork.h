@@ -38,22 +38,9 @@ public:
 
     QVector<FlightRoute> searchRecommendation(const QVector<QString>& cityList, const User user);
     FlightRoute findSingleRoute(const QString& departureCity, const QString& arrivalCity, const int depth);
-    bool dfs2(const QString& arrivalCity,
-                            City* currentCity,
-                            FlightRoute& path,
-                             QSet<City*>& visited, int depth);
+    bool dfs2(const QString& arrivalCity, City* currentCity, FlightRoute& path, QSet<City*>& visited, int depth);
 
     void readFlightFromFile(const QString& file);
     void writeFlightToFile(const QString& filename);
-
-    void dfsRecommendation(
-        const QString& arrivalCity,
-        City* currentCity,
-        FlightRoute& path,
-        QVector<FlightRoute>& recommendations,
-        QSet<City*>& visited,
-        int depth
-        );
-    bool hasCityFlights(City *city);
 };
 

@@ -57,7 +57,7 @@ SOURCES += \
 INCLUDEPATH += $$PWD/lib/
 
 HEADERS += \
-    $$PWD/lib/QRCodeGenerator/qrcodegen.h \
+    $$PWD/lib/QRCodeGenerator/qrcodegen.hpp \
     widgets/CabinClassBookingDialog.h \
     widgets/OrderDetailsDialog.h \
     widgets/SearchableComboBox.h
@@ -93,14 +93,11 @@ DISTFILES += \
     data/order/1101.txt \
     data/order/3.txt \
     data/order/gh.txt \
-    scripts/word_cloud.py \
     web/css/leaflet.css \
     web/html/domestic_routes.html \
     web/html/global_routes.html \
-    web/html/map.html \
     web/js/leaflet.js \
     web/js/leaflet_geodesic.js \
-    web/js/leaftlet_geodesic.js \
     web/js/qwebchannel.js
 
 RESOURCES += \

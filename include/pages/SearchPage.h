@@ -4,6 +4,7 @@
 #include <QWidget>
 #include "flight_ticket_management_system.h"
 #include "qcombobox.h"
+#include "qlabel.h"
 #include "qtreewidget.h"
 #include "widgets/SearchableComboBox.h"
 

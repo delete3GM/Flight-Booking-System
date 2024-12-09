@@ -11,12 +11,18 @@
 #include "qwebengineview.h"
 #include <QDateTime>
 
-QSet<QString> foreignCities = {"伦敦","纽约","莫斯科","悉尼","东京","巴黎"};
+QSet<QString> foreignCities = {"伦敦", "纽约", "莫斯科", "悉尼", "东京", "巴黎", "柏林", "洛杉矶", "首尔", "曼谷"};
 
 QMap<QString, double> mealPrice = {
     {"无餐食", 0.0},
     {"标准餐", 35.0},
     {"豪华餐", 80.0}
+};
+
+QMap<QString, double> insurancePrice = {
+    {"无保险", 0.0},
+    {"基础保险", 80.0},
+    {"尊享保险", 150.0}
 };
 
 QMap<QString, double> cabinPrice = {
@@ -72,7 +78,7 @@ QString getPasswordById(const QString &id) {
         QString line = in.readLine();
         QStringList fields = line.split(' ');
 
-        if (fields.size() == 2) {
+        if (fields.size() == 3) {
             QString fileId = fields[0];
             QString password = fields[1];
 

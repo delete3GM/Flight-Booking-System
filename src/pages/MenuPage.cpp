@@ -4,7 +4,6 @@
 MenuPage::MenuPage(Flight_Ticket_Management_System *mainWindow, QWidget *parent)
     : QWidget(parent), ui(new Ui::MenuPage), mainWindow(mainWindow) {
     ui->setupUi(this);
-    //loadRecommendation();
 
     connect(ui->searchBtn, &QPushButton::released, this, &MenuPage::menu2search);
     connect(ui->userBtn, &QPushButton::released, this, &MenuPage::menu2user);

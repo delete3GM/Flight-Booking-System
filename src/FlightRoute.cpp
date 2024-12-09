@@ -122,8 +122,8 @@ int FlightRoute::getTotalTransferTime() const {
 
 QString FlightRoute::showFlightsInfo() const {
     QString flightInfo = "";
-    for(std::shared_ptr<Flight> flight : flights) {
-        flightInfo += flight->showInfo() + "\n";
+    for(size_t i = 0; i < flights.size(); i++) {
+        flightInfo += QString("第 %1 程：").arg(i + 1) + flights[i]->showInfo() + "\n";
     }
     return flightInfo;
 }
@@ -159,11 +159,10 @@ const QVector<std::shared_ptr<Flight>>::const_iterator FlightRoute::end() const 
 }
 
 FlightRoute& FlightRoute::operator=(const FlightRoute& other) {
-    if (this != &other) { // 自我赋值检查
-        //qDeleteAll(flights); // 释放旧资源
+    if (this != &other) {
         flights.clear();
         for (const std::shared_ptr<Flight> &flight : other.flights) {
-            flights.push_back(flight); // 深拷贝
+            flights.push_back(flight);
         }
     }
     return *this;

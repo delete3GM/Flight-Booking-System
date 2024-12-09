@@ -25,8 +25,10 @@ void clearJsonFile(const QString &filePath);
 void configWebEngine(QWebEngineView * we);
 
 
-#define FLIGHT_FILE							"../data/flight/flight_data_final.txt"
+#define FLIGHT_FILE							"../data/flight/flight_data.txt"
 #define CITY_FILE                           "../data/flight/city_info.csv"
+#define DOMESTIC_MAP_URL                    "D:/CS/projects/Flight_Ticket_Management_System/web/html/domestic_routes.html"
+#define GLOBAL_MAP_URL                      "D:/CS/projects/Flight_Ticket_Management_System/web/html/global_routes.html"
 #define PYTHON_FILE                         "../data/flight/get_weather_info.exe"
 
 #define USER_FILE                           "../data/user.txt"
@@ -36,12 +38,16 @@ void configWebEngine(QWebEngineView * we);
 #define MAX_RECOMMENDATIONS                 6
 
 #define NORMAL_MEAL_PRICE                   35
-#define PLUS_MEAL_PRICE                     80
+#define SUPER_MEAL_PRICE                    80
+#define NORMAL_INSURANCE_PRICE              80
+#define SUPER_INSURANCE_PRICE               150
 
 #define SMOOTHING_FACTOR                    0.2
+#define FUEL_RATIO                          0.09
 
 extern QSet<QString> foreignCities;
 extern QMap<QString, double> mealPrice;
+extern QMap<QString, double> insurancePrice;
 extern QMap<QString, double> cabinPrice;
 
 
@@ -52,14 +58,6 @@ typedef enum Sort_Type {
     SORT_BY_PRICE,											// 按票价排序
     SORT_BY_PERSON                                          // 智能个性化排序
 } SORT_TYPE;
-
-typedef enum Flight_Status {
-	STATUS_NORMAL,											// 航班状态正常
-	STATUS_DELAY,											// 航班状态延误
-	STATUS_CANCEL,											// 航班状态取消
-	STATUS_COUNT
-
-} FLIGHT_STATUS;
 
 struct CityInfo {
     double latitude;

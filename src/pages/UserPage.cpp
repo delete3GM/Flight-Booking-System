@@ -191,13 +191,14 @@ void UserPage::handleRefund(const QString& orderId) {
 
 void UserPage::handleReschedule(const QString& orderId) {
     bool orderFound = false;
-    auto orders = mainWindow->currentUser.orderManager.getOrders();
+    auto &orders = mainWindow->currentUser.orderManager.getOrders();
     for (auto& order : orders) {
         if (order.getOrderId() == orderId) {
             orderFound = true;
 
             if (order.getStatus() == "已支付") {
                 order.setStatus("已改签");
+
                 mainWindow->orderType = Flight_Ticket_Management_System::RESCHEDULE_ORDER;
                 mainWindow->rescheduleOrder = order;
                 const FlightRoute& flightRoute = order.getFlightRoute();

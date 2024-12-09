@@ -84,11 +84,12 @@ void OrderManager::loadOrdersFromJsonFile(const QString& filePath) {
             flights.append(flight);
         }
         QString meal = obj["meal"].toString();
+        QString insurance = obj["insurance"].toString();
         QString status = obj["status"].toString();
         double price = obj["price"].toDouble();
         QString cabinClass = obj["cabinClass"].toString();
         FlightRoute flightRoute(flights);
-        Order order(orderId, passenger, flightRoute, meal, status, price, cabinClass);
+        Order order(orderId, passenger, flightRoute, meal, insurance, status, price, cabinClass);
 
         bool exists = false;
         for (const Order& existingOrder : orders) {
@@ -106,7 +107,8 @@ void OrderManager::loadOrdersFromJsonFile(const QString& filePath) {
 double OrderManager::getTotalConsumption() {
     double total = 0;
     for (const Order& order : orders) {
-        total += order.getPrice();
+        if(order.getStatus() == "已支付")
+            total += order.getPrice();
     }
     return total;
 }

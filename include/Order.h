@@ -12,6 +12,7 @@ private:
     Passenger passenger;
     FlightRoute flightroute;
     QString meal;
+    QString insurance;
     QString status;
     double price;
     QString cabinClass;
@@ -20,7 +21,9 @@ private:
 public:
 
     Order();
-    Order(QString id, const Passenger& passenger, FlightRoute flightroute, QString meal, QString status, double price, QString cabinClass);
+    Order(QString id, const Passenger& passenger, FlightRoute flightroute, QString meal, QString insurance,
+          QString status, double price, QString cabinClass);
+
     QString getOrderId() const;
     const Passenger& getPassenger() const;
     const FlightRoute &getFlightRoute() const;
@@ -28,7 +31,7 @@ public:
     double getPrice() const;
     QString getCabinClass() const;
     QString getMeal() const;
-    double getMealPrice() const;
+    QString getInsurance() const;
 
     void setOrderId(const QString& id);
     void setPassenger(const Passenger& passenger);

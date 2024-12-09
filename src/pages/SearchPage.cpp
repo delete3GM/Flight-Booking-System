@@ -19,7 +19,6 @@ SearchPage::SearchPage(Flight_Ticket_Management_System *mainWindow, QWidget *par
     connect(ui->exchangeBtn, SIGNAL(released()), this, SLOT(Exchange()));
     connect(ui->searchBtn, SIGNAL(released()),this,SLOT(searchFlights()));
     connect(ui->showCalendarBtn, SIGNAL(released()), this, SLOT(showCalendar()));
-
 }
 
 SearchPage::~SearchPage() {
@@ -35,10 +34,10 @@ void SearchPage::initSearchPage() {
     ui->backBtn->setStyleSheet("QToolButton { border: none; background: none; }");
     ui->backBtn->setAutoRaise(true);
 
-    ui->exchangeBtn->setFixedSize(32, 32);
+    ui->exchangeBtn->setFixedSize(38, 38);
     QIcon icon(":/images/resources/images/exchange.png");
     ui->exchangeBtn->setIcon(icon);
-    ui->exchangeBtn->setIconSize(QSize(24, 24));
+    ui->exchangeBtn->setIconSize(QSize(32, 32));
     ui->exchangeBtn->setStyleSheet(R"(
         QPushButton {
             border-style: outset;
@@ -47,7 +46,6 @@ void SearchPage::initSearchPage() {
             border-color: #8B7355;
         }
     )");
-
     ui->graphLbl->setText("<a href='#'>查看航线图</a>");
     connect(ui->graphLbl, &QLabel::linkActivated, this, &SearchPage::showGraph);
 
@@ -57,7 +55,7 @@ void SearchPage::initSearchPage() {
     depComboBox->initializeBox(cityNames, mainWindow->cityInfoMap);
     arrComboBox->initializeBox(cityNames, mainWindow->cityInfoMap);
     QRect depGeometry(50, 80, 140, 40);
-    QRect arrGeometry(280, 80, 140, 40);
+    QRect arrGeometry(287, 80, 140, 40);
     depComboBox->setGeometry(depGeometry);
     arrComboBox->setGeometry(arrGeometry);
 
@@ -69,7 +67,6 @@ void SearchPage::initSearchPage() {
         mainWindow->arrCity = city;
         updateCityWeather(ui->arrWeatherLbl, city);
     });
-
     if (!cityNames.isEmpty()) {
         QString firstCity = cityNames.first();
         depComboBox->setCurrentText(firstCity);
@@ -166,19 +163,21 @@ void SearchPage::mousePressEvent(QMouseEvent *event) {
 }
 
 void SearchPage::Exchange() {
-    int currentIndex = depComboBox->currentIndex();
-    depComboBox->setCurrentIndex(arrComboBox->currentIndex());
-    arrComboBox->setCurrentIndex(currentIndex);
-    mainWindow->depCity = depComboBox->itemText(arrComboBox->currentIndex());
-    mainWindow->arrCity = arrComboBox->itemText(currentIndex);
+    if(mainWindow->orderType != Flight_Ticket_Management_System::RESCHEDULE_ORDER){
+        int currentIndex = depComboBox->currentIndex();
+        depComboBox->setCurrentIndex(arrComboBox->currentIndex());
+        arrComboBox->setCurrentIndex(currentIndex);
+        mainWindow->depCity = depComboBox->itemText(arrComboBox->currentIndex());
+        mainWindow->arrCity = arrComboBox->itemText(currentIndex);
 
-    QString tempWeather = ui->depWeatherLbl->text();
-    ui->depWeatherLbl->setText(ui->arrWeatherLbl->text());
-    ui->arrWeatherLbl->setText(tempWeather);
+        QString tempWeather = ui->depWeatherLbl->text();
+        ui->depWeatherLbl->setText(ui->arrWeatherLbl->text());
+        ui->arrWeatherLbl->setText(tempWeather);
+    }
 }
 
 void SearchPage::searchFlights() {
-    if(depComboBox->currentIndex() == arrComboBox->currentIndex()) {
+    if(depComboBox->currentIndex() == arrComboBox->currentIndex() && mainWindow->depCity == mainWindow->arrCity) {
         QMessageBox::warning(this, "提示", "出发城市和到达城市相同");
         return;
     }
@@ -203,6 +202,8 @@ void SearchPage::loadCitiesIntoComboBox(QComboBox* comboBox, const QVector<QStri
 }
 
 void SearchPage::setDataForReschedule(const QString& dep, const QString& arr, const QDate& date) {
+    depComboBox->setEnabled(false);
+    arrComboBox->setEnabled(false);
     loadCitiesIntoComboBox(depComboBox, mainWindow->network.getAllCityNames());
     loadCitiesIntoComboBox(arrComboBox, mainWindow->network.getAllCityNames());
     depComboBox->setCurrentText(dep);
@@ -214,9 +215,12 @@ void SearchPage::setDataForReschedule(const QString& dep, const QString& arr, co
 
 void SearchPage::loadRecommendation() {
     QVector<QString> cityList = mainWindow->currentUser.getFrequentCities();
+
     QVector<FlightRoute> tempRecommendation = mainWindow->network.searchRecommendation(cityList, mainWindow->currentUser);
+
     mainWindow->recommendationFlights = mainWindow->network.sortFlights(
         mainWindow->currentUser, tempRecommendation, SORT_BY_PERSON);
+
 }
 
 void SearchPage::displayRecommendation() {
@@ -307,8 +311,7 @@ void SearchPage::handleCabinClassSelected(const QString& cabinClass, int row) {
 
 void SearchPage::showGraph() {
     QWebEngineView *webEngineView = new QWebEngineView(this);
-    webEngineView->setUrl(QUrl::fromLocalFile(
-        "D:/CS/projects/Flight_Ticket_Management_System/web/html/domestic_routes.html"));
+    webEngineView->setUrl(QUrl(DOMESTIC_MAP_URL));
 
     configWebEngine(webEngineView);
 

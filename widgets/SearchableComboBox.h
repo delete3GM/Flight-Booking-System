@@ -5,7 +5,6 @@
 #include <QCompleter>
 #include <QMap>
 #include "Utils.h"
-#include "qlabel.h"
 
 class SearchableComboBox : public QComboBox {
     Q_OBJECT

@@ -7,7 +7,6 @@
 #include <QMap>
 #include <QPair>
 #include <QElapsedTimer>
-#include <random>
 #include <QThreadPool>
 #include <QMutexLocker>
 
@@ -48,8 +47,6 @@ void FlightNetwork::addFlight(QString airline, QString flightNumber, QString air
             }
             temp->next = newNode;
         }
-
-        // 更新航班数量
         depCity->flightNum++;
     }
 }
@@ -121,7 +118,7 @@ void FlightNetwork::writeFlightToFile(const QString& filename) {
 
 void FlightNetwork::clearData() {
     for (auto* city : cities) {
-        city->flightNum = 0;  // 重置航班数量
+        city->flightNum = 0;
     }
     qDeleteAll(cities);
     cities.clear();
@@ -146,22 +143,23 @@ QVector<FlightRoute> FlightNetwork::searchFlightsDFS(const QString& departureCit
         return allPaths;
     }
 
-    // 使用标准线程池
     QVector<FlightRoute> threadSafePaths;
     std::atomic<int> pathCount{0};
-    const int MAX_PATHS = 10000;  // 限制总路径数
-    const int MAX_THREADS = std::thread::hardware_concurrency();
+    const int MAX_PATHS = 1000;
+    const int MAX_THREADS = 100;
 
-    // 互斥锁
     QMutex pathMutex;
 
-    // 线程容器
     std::vector<std::thread> threads;
 
-    // 遍历初始航班
     for (FlightNode* initialNode = startCity->flightsHead;
          initialNode && pathCount < MAX_PATHS && threads.size() < MAX_THREADS;
          initialNode = initialNode->next) {
+
+        QDateTime initialDepDateTime = QDateTime::fromString(initialNode->flight->getDepartureTime(), "yyyy-MM-dd HH:mm");
+        if (initialDepDateTime.date() != selectedDate) {
+            continue;
+        }
 
         threads.emplace_back([&, initialNode]() {
             // 每个线程独立的搜索上下文
@@ -169,18 +167,15 @@ QVector<FlightRoute> FlightNetwork::searchFlightsDFS(const QString& departureCit
             QSet<City*> localVisited;
             QVector<FlightRoute> localPaths;
 
-            // 添加初始航班
             localPath.append(initialNode->flight);
             City* nextCity = cityMap.value(initialNode->flight->getArrivalCity(), nullptr);
 
-            // 深度优先搜索
             dfs(arrivalCity, selectedDate, nextCity, localPath, localPaths, localVisited, 1);
 
             // 线程安全地合并路径
             if (!localPaths.isEmpty()) {
                 QMutexLocker locker(&pathMutex);
 
-                // 检查是否超过最大路径限制
                 int remainingSlots = MAX_PATHS - pathCount;
                 int pathsToAdd = qMin(remainingSlots, localPaths.size());
 
@@ -192,7 +187,6 @@ QVector<FlightRoute> FlightNetwork::searchFlightsDFS(const QString& departureCit
         });
     }
 
-    // 等待所有线程完成
     for (auto& thread : threads) {
         if (thread.joinable()) {
             thread.join();
@@ -228,10 +222,11 @@ void FlightNetwork::dfs(const QString& arrivalCity,
                               QDateTime(selectedDate, QTime(0, 0)).toSecsSinceEpoch();
 
     for (FlightNode* node = currentCity->flightsHead; node; node = node->next) {
-        int depDateTime = QDateTime::fromString(node->flight->getDepartureTime(), "yyyy-MM-dd HH:mm").toSecsSinceEpoch();
-        bool isValidConnection = (depDateTime > lastArrivalTime) &&
-                                 (depDateTime - lastArrivalTime <= 24 * 3600) &&
-                                 (depDateTime - lastArrivalTime >= 1 * 3600);
+        QDateTime depDateTime = QDateTime::fromString(node->flight->getDepartureTime(), "yyyy-MM-dd HH:mm");
+        bool isValidConnection = (depDateTime.toSecsSinceEpoch() > lastArrivalTime) &&
+                                 (depDateTime.toSecsSinceEpoch() - lastArrivalTime <= 24 * 3600) &&
+                                 (depDateTime.toSecsSinceEpoch() - lastArrivalTime >= 1 * 3600);
+
         if (!isValidConnection) {
             continue;
         }
@@ -286,39 +281,6 @@ QVector<FlightRoute> FlightNetwork::sortFlights(User user, QVector<FlightRoute> 
     if (flights.isEmpty()) {
         return flights;
     }
-    auto calculateTotalDuration = [](const FlightRoute& flightPath) {
-        return Duration(flightPath.first()->getDepartureTime(), flightPath.last()->getArrivalTime());
-    };
-    auto calculateEarliestDepartureTime = [](const FlightRoute& flightPath) {
-        return QDateTime::fromString(flightPath.first()->getDepartureTime(), Qt::ISODate);
-    };
-    auto calculateScore = [ &calculateEarliestDepartureTime, &user, &flights]
-        (const FlightRoute& flightPath) {
-
-        // 计算价格得分，与价格偏好偏差越大 得分越少
-        double totalPrice = 0.0;
-        for (const auto& route : flights) {
-            totalPrice += route.getTotalPrice();
-        }
-        double basePrice = totalPrice / flights.size();
-        double preRatio = user.getPriceRatio();
-
-        double curRatio = SMOOTHING_FACTOR * (flightPath.getTotalPrice() / basePrice) +
-                              (1 - SMOOTHING_FACTOR) * preRatio;
-        double priceScore = 1.0 / (1.0 + (curRatio - preRatio) * (curRatio - preRatio));
-
-        // 计算时间得分，与平均起飞时间偏差越大 得分越少
-        QDateTime earliestDepartureTime = calculateEarliestDepartureTime(flightPath);
-        double timeScore = 1.0 / (1.0 + (earliestDepartureTime.time().hour() - user.getAvgDepTime()) *
-                                            (earliestDepartureTime.time().hour() - user.getAvgDepTime()));
-
-        // 1/(1+(x-a)^2) 与平均转机数偏差越大 得分越少
-        int transferCount = flightPath.getTransferCount();
-        double transferScore = 1.0 / (1.0 + (transferCount - user.getAvgTransNum()) * (transferCount - user.getAvgTransNum()));
-
-        double score = 0.5 * priceScore + 0.2 * timeScore + 0.3 * transferScore;
-        return score;
-    };
 
     switch (sortType) {
     case SORT_BY_PRICE:
@@ -329,21 +291,81 @@ QVector<FlightRoute> FlightNetwork::sortFlights(User user, QVector<FlightRoute> 
         break;
     case SORT_BY_DURA:
         std::sort(flights.begin(), flights.end(),
-                  [calculateTotalDuration](const FlightRoute& a, const FlightRoute& b) {
-                      return calculateTotalDuration(a) < calculateTotalDuration(b);
+                  [](const FlightRoute& a, const FlightRoute& b) {
+                      return Duration(a.first()->getDepartureTime(), a.last()->getArrivalTime()) <
+                             Duration(b.first()->getDepartureTime(), b.last()->getArrivalTime());
                   });
         break;
     case SORT_BY_TIME:
         std::sort(flights.begin(), flights.end(),
-                  [calculateEarliestDepartureTime](const FlightRoute& a, const FlightRoute& b) {
-                      return calculateEarliestDepartureTime(a) < calculateEarliestDepartureTime(b);
+                  [](const FlightRoute& a, const FlightRoute& b) {
+                      return QDateTime::fromString(a.first()->getDepartureTime(), Qt::ISODate) <
+                             QDateTime::fromString(b.first()->getDepartureTime(), Qt::ISODate);
                   });
         break;
     case SORT_BY_PERSON:
-        std::sort(flights.begin(), flights.end(),
-                  [calculateScore](const FlightRoute& a, const FlightRoute& b) {
-                      return calculateScore(a) > calculateScore(b);
-                  });
+        try {
+            // 计算基准价格
+            double totalPrice = 0.0;
+            for (const auto& route : flights) {
+                totalPrice += route.getTotalPrice();
+            }
+            double basePrice = flights.isEmpty() ? 0 : (totalPrice / flights.size());
+
+            std::sort(flights.begin(), flights.end(),
+                      [&user, basePrice](const FlightRoute&a,const FlightRoute&b) {
+                          // 价格得分
+                          double priceRatio = user.getPriceRatio();
+                          double aPriceScore = basePrice > 0 ?
+                                                   (1.0 / (1.0 + std::pow(a.getTotalPrice() / basePrice - priceRatio, 2))) : 0;
+                          double bPriceScore = basePrice > 0 ?
+                                                   (1.0 / (1.0 + std::pow(b.getTotalPrice() / basePrice - priceRatio, 2))) : 0;
+
+                          // 时间得分
+                          int avgDepTime = user.getAvgDepTime();
+                          QTime aDepTime = QDateTime::fromString(a.first()->getDepartureTime(), Qt::ISODate).time();
+                          QTime bDepTime = QDateTime::fromString(b.first()->getDepartureTime(), Qt::ISODate).time();
+
+                          double aTimeScore = 1.0 / (1.0 + std::pow(aDepTime.hour() - avgDepTime, 2));
+                          double bTimeScore = 1.0 / (1.0 + std::pow(bDepTime.hour() - avgDepTime, 2));
+
+                          // 转机次数得分
+                          int avgTransNum = user.getAvgTransNum();
+                          double aTransCountScore = 1.0 / (1.0 + std::pow(a.getTransferCount() - avgTransNum, 2));
+                          double bTransCountScore = 1.0 / (1.0 + std::pow(b.getTransferCount() - avgTransNum, 2));
+
+                          // 转机等待时间得分
+                          int avgTransTime = user.getAvgTransTime();
+                          double aTransTimeScore = 1.0 / (1.0 + std::pow(a.getTotalTransferTime() - avgTransTime, 2));
+                          double bTransTimeScore = 1.0 / (1.0 + std::pow(b.getTotalTransferTime() - avgTransTime, 2));
+
+                          // 机型得分
+                          auto frequentAirTypes = user.getFrequentAirTypes();
+                          double aTypeScore = 0, bTypeScore = 0;
+                          for (const auto& flight : a) {
+                              if (frequentAirTypes.contains(flight->getAircraftType())) {
+                                  aTypeScore++;
+                              }
+                          }
+                          for (const auto& flight : b) {
+                              if (frequentAirTypes.contains(flight->getAircraftType())) {
+                                  bTypeScore++;
+                              }
+                          }
+                          aTypeScore /= a.getFlightCount();
+                          bTypeScore /= b.getFlightCount();
+
+                          // 综合得分
+                          double aScore = 0.3 * aPriceScore + 0.2 * aTimeScore + 0.15 * aTransCountScore +
+                                          0.15 * aTransTimeScore + 0.2 * aTypeScore;
+                          double bScore = 0.3 * bPriceScore + 0.2 * bTimeScore + 0.15 * bTransCountScore +
+                                          0.15 * bTransTimeScore + 0.2 * bTypeScore;
+
+                          return aScore > bScore;
+                      });
+        } catch (const std::exception& e) {
+            qDebug() << "Sorting error: " << e.what();
+        }
         break;
     default:
         break;
@@ -372,7 +394,7 @@ QVector<FlightRoute> FlightNetwork::searchRecommendation(const QVector<QString>&
                   });
 
         // 选择航班数最多的城市
-        while (workingCityList.size() < 3 && !cityFlightCounts.isEmpty()) {
+        while (workingCityList.size() <= 3 && !cityFlightCounts.isEmpty()) {
             workingCityList.append(cityFlightCounts.first().first);
             cityFlightCounts.removeFirst();
         }
@@ -382,18 +404,14 @@ QVector<FlightRoute> FlightNetwork::searchRecommendation(const QVector<QString>&
         cityMap[city->name] = city;
     }
 
-    // 线程安全的推荐航班容器
     QVector<FlightRoute> threadSafeRecommendations;
     std::atomic<int> recommendationCount{0};
     const int MAX_THREADS = 10;
 
-    // 互斥锁
     QMutex recommendationMutex;
 
-    // 线程容器
     std::vector<std::thread> threads;
 
-    // 并行搜索推荐航班
     for (int i = 0; i < workingCityList.size(); i++) {
         for (int j = 0; j < workingCityList.size(); j++) {
             if (i == j || threads.size() >= MAX_THREADS || recommendationCount >= MAX_RECOMMENDATIONS) continue;
@@ -406,16 +424,15 @@ QVector<FlightRoute> FlightNetwork::searchRecommendation(const QVector<QString>&
                 City* arrivalCity = cityMap.value(arrivalCityName, nullptr);
 
                 if (departureCity && arrivalCity) {
-                    FlightRoute recommendedRoute = findSingleRoute(departureCity->name, arrivalCity->name, int(user.getAvgTransNum()));
+                    FlightRoute recommendedRoute = findSingleRoute(departureCity->name, arrivalCity->name, 0);
 
                     if (!recommendedRoute.isEmpty()) {
                         QMutexLocker locker(&recommendationMutex);
 
-                        // 检查是否超过最大推荐数量
                         if (recommendationCount < MAX_RECOMMENDATIONS) {
                             threadSafeRecommendations.append(recommendedRoute);
                             recommendationCount ++;
-                            qDebug() << "rec:" << recommendedRoute.showFlightsInfo();
+                            //qDebug() << "rec:" << recommendedRoute.showFlightsInfo();
                         }
                     }
                 }
@@ -423,13 +440,11 @@ QVector<FlightRoute> FlightNetwork::searchRecommendation(const QVector<QString>&
         }
     }
 
-    // 等待所有线程完成
     for (auto& thread : threads) {
         if (thread.joinable()) {
             thread.join();
         }
     }
-
     return threadSafeRecommendations;
 }
 

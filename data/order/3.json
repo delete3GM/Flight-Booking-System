@@ -1,0 +1,29 @@
+[
+    {
+        "cabinClass": "经济舱",
+        "flightRoute": [
+            {
+                "airline": "泰国航空",
+                "arrivalCity": "纽约",
+                "arrivalTime": "2024-12-01 19:21",
+                "departureCity": "北京",
+                "departureTime": "2024-12-01 07:08",
+                "flightNumber": "TG4519",
+                "price": 11330,
+                "remainSeatNum": 121
+            }
+        ],
+        "insurance": "无保险",
+        "meal": "标准餐",
+        "orderId": "{71dfd492-79d5-4f31-991b-6fc451a77b1c}",
+        "passenger": {
+            "familyName": "ewf",
+            "givenName": "ewf",
+            "id": "ewf",
+            "phone": "wef",
+            "sex": "Male"
+        },
+        "price": 12384.7,
+        "status": "已支付"
+    }
+]

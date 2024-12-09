@@ -40,6 +40,11 @@
      <height>401</height>
     </size>
    </property>
+   <property name="font">
+    <font>
+     <pointsize>12</pointsize>
+    </font>
+   </property>
    <property name="styleSheet">
     <string notr="true">QTabWidget::pane {  
         background-color: #e6f2ff;  
@@ -112,8 +117,8 @@
   <widget class="QPushButton" name="domMapBtn">
    <property name="geometry">
     <rect>
-     <x>720</x>
-     <y>40</y>
+     <x>710</x>
+     <y>60</y>
      <width>91</width>
      <height>31</height>
     </rect>
@@ -197,7 +202,7 @@
    <property name="geometry">
     <rect>
      <x>840</x>
-     <y>40</y>
+     <y>60</y>
      <width>91</width>
      <height>31</height>
     </rect>

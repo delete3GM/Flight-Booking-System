@@ -42,8 +42,7 @@ public:
     enum ORDER_TYPE {
         NONE,
         NEW_ORDER,
-        RESCHEDULE_ORDER,
-        CANCELED_ORDER
+        RESCHEDULE_ORDER
     };
 
     enum MAP_TYPE{

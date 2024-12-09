@@ -10,7 +10,7 @@ class City : public QObject {
 public:
     QString name;
     int flightNum;
-    FlightNode* flightsHead;  // 链表头节点
+    FlightNode* flightsHead;
 
     City(QString n) : name(n), flightsHead(nullptr) {}
 };

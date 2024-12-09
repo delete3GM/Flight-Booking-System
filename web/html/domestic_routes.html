@@ -46,11 +46,10 @@
 
         function clearGeodesicLines() {
         geodesicLines.forEach(function(geodesic) {
-                map.removeLayer(geodesic); // 从地图上移除线
+                map.removeLayer(geodesic);
             });
             geodesicLines = []; // 清空测地线数组
 
-            // 移除所有标记
             markers.forEach(function(marker) {
                 map.removeLayer(marker);
             });
@@ -59,7 +58,6 @@
 
         function drawGeodesicLine(x1, y1, x2, y2, description, flag) {
 
-            // 添加起点标记
             if (flag == "END_ONLY") {
                 if (geodesicLines.length === 0) {
                     setCenterAndZoom(x1, y1, 3);
@@ -70,7 +68,6 @@
                 markers.push(startMarker);
             }
 
-           // 添加终点标记
            const endMarker = L.marker([x2, y2]).addTo(map)
                .openPopup();
            markers.push(endMarker);
@@ -79,10 +76,9 @@
             const loc2 = new L.LatLng(x2, y2);
             const geodesic = new L.Geodesic([loc1, loc2]).addTo(map);
 
-            // 设置初始样式
             geodesic.setStyle({ color: 'blue', weight: 2 });
 
-            // 添加鼠标悬停事件，显示描述信息并改变样式
+            // 添加鼠标悬停事件
             geodesic.on('mouseover', function () {
                 geodesic.setStyle({ color: 'blue', weight: 5 });
                 L.popup()
@@ -97,7 +93,6 @@
                 map.closePopup();
             });
 
-            // 将新绘制的测地线存储到数组中
             geodesicLines.push(geodesic);
         }
 

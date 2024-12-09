@@ -8,20 +8,24 @@ class User {
 
 private:
     QString id;
+    QString password;
     int VIP = 0;
 
-    double avgDepTime = 1; //平均
-    double avgTransNum = 1; //通常转机的次数
-    double priceRatio = 1; //当前订票价格/航线平均价格 xi+1=ax+(1-a)xi
+    double avgDepTime = 0;
+    double avgTransNum = 0;
+    double avgTransTime = 0;
+    double priceRatio = 1; // 当前订票价格/航线平均价格 递推：xi+1=ax+(1-a)xi
 
     QVector<QString> frequentCities;
+    QVector<QString> frequentAirTypes;
     void updateAvgDepTime();
     void updateAvgTransNum();
-    void updatePriceRatio();
+    void updateAvgTransTime();
     void updateFrequentCities();
+    void updateFrequentAirTypes();
 
 public:
-    OrderManager orderManager; // 管理用户订单
+    OrderManager orderManager;
 
 public:
     User();
@@ -30,16 +34,22 @@ public:
     int getVIPLevel() const;
 
     void setID(QString id);
+    void setPassword(QString psw);
     void updateVIPLevel();
 
     double getAvgDepTime() const;
     double getAvgTransNum() const;
+    double getAvgTransTime() const;
     double getPriceRatio() const;
     void setPriceRatio(double ratio);
+    void updatePriceRatio(const double selectedPriceRatio);
     QVector<QString> getFrequentCities() const;
+    QVector<QString> getFrequentAirTypes() const;
 
     void updateUserWeight();
     void loadUserOrders();
+    void loadPriceRatio();
+    void savePriceRatioToFile();
 
 };
 

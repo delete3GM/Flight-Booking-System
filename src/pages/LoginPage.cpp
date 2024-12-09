@@ -73,7 +73,7 @@ bool LoginPage::isUserRegistered(const QString& id, const QString& psw) {
     while (!in.atEnd()) {
         line = in.readLine();
         QStringList fields = line.split(" ");
-        if (fields.size() == 2 && fields[0] == id && fields[1] == hashPassword(psw)) {
+        if (fields.size() == 3 && fields[0] == id && fields[1] == hashPassword(psw)) {
             file.close();
             return true;
         }
@@ -95,8 +95,10 @@ void LoginPage::Login() {
         return;
     }
     if (isUserRegistered(mainWindow->currentUser.getID(), Psw)) {
+        mainWindow->currentUser.setPassword(Psw);
         QMessageBox::information(this, "登录成功", "欢迎回来！");
         mainWindow->currentUser.loadUserOrders();
+        mainWindow->currentUser.loadPriceRatio();
         mainWindow->showMenuPage();
         loginAttempts = 0;
     } else {
@@ -150,12 +152,14 @@ void LoginPage::signUp() {
         return;
     }
     QTextStream out(&file);
-    out << id << " " << hashPassword(psw) << "\n";
+    out << id << " " << hashPassword(psw) << " " << 1.00 <<"\n";
     file.close();
 
     QMessageBox::information(this, "注册成功", "用户注册成功！");
     mainWindow->currentUser.setID(id);
+    mainWindow->currentUser.setPassword(psw);
     mainWindow->currentUser.loadUserOrders();
+    mainWindow->currentUser.loadPriceRatio();
     mainWindow->showMenuPage();
 }
 
@@ -177,7 +181,7 @@ void LoginPage::changePsw() {
     while (!in.atEnd()) {
         QString line = in.readLine();
         QStringList fields = line.split(" ");
-        if (fields.size() == 2 && fields[0] == currentId) {
+        if (fields.size() == 3 && fields[0] == currentId) {
             userFound = true;
             break;
         }
@@ -225,7 +229,7 @@ bool LoginPage::updatePassword(const QString &newPassword, const QString &confir
     while (!in.atEnd()) {
         QString line = in.readLine();
         QStringList fields = line.split(" ");
-        if (fields.size() == 2 && fields[0] == getID()) {
+        if (fields.size() == 3 && fields[0] == getID()) {
             fields[1] = hashPassword(newPassword);
             passwordUpdated = true;
         }

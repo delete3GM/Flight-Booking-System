@@ -13,9 +13,6 @@ CheckoutPage::CheckoutPage(Flight_Ticket_Management_System *mainWindow, QWidget 
 
     connect(ui->submitBtn, &QPushButton::released, this, &CheckoutPage::addPassenger);
     connect(ui->cancelBtn, &QPushButton::released, this, &CheckoutPage::checkout2info);
-    connect(ui->noFoodBtn, &QPushButton::released, this, &CheckoutPage::changeNoFood);
-    connect(ui->normalFoodBtn, &QPushButton::released, this, &CheckoutPage::changeNormalFood);
-    connect(ui->plusFoodBtn, &QPushButton::released, this, &CheckoutPage::changePlusFood);
 }
 
 CheckoutPage::~CheckoutPage() {
@@ -40,44 +37,75 @@ void CheckoutPage::initCheckout() {
         ui->passenger_phone->clear();
         ui->passenger_phone->setPlaceholderText("手机号码");
     }
-    ui->flightInfo->setText(detailInfo());
+    ui->mealBox->setCurrentIndex(0);
+    ui->insuranceBox->setCurrentIndex(0);
+
+    ui->flightInfoLbl->setText(mainWindow->selectedFlight.showFlightsInfo());
+    ui->priceLbl->setTextFormat(Qt::RichText);
+    ui->priceLbl->setText(priceInfo());
+
     ui->historyArea->setWidgetResizable(true);
-    ui->foodLbl->setText("已选择：无餐食\n需额外支付 0 元");
+
     loadPassengerHistory();
     initPassengerArea();
+
+    initMealBox();
+    initInsBox();
 }
 
-QString CheckoutPage::detailInfo() {
-    QString info = mainWindow->selectedFlight.showFlightsInfo();
+void CheckoutPage::initMealBox() {
+    ui->mealBox->addItem("无餐食", QVariant("无餐食"));
+    ui->mealBox->addItem("标准餐              35元", QVariant("标准餐"));
+    ui->mealBox->addItem("豪华餐              80元", QVariant("豪华餐"));
 
+    connect(ui->mealBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &CheckoutPage::updateMealSelection);
+}
+
+void CheckoutPage::initInsBox() {
+    ui->insuranceBox->addItem("无保险", QVariant("无保险"));
+    ui->insuranceBox->addItem("基础保险           80元", QVariant("基础保险"));
+    ui->insuranceBox->addItem("尊享保险          150元", QVariant("尊享保险"));
+
+    connect(ui->insuranceBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &CheckoutPage::updateInsSelection);
+}
+
+void CheckoutPage::updateMealSelection(int index) {
+    meal = ui->mealBox->itemData(index).toString();
+    ui->priceLbl->setText(priceInfo());
+}
+
+void CheckoutPage::updateInsSelection(int index) {
+    insurance = ui->insuranceBox->itemData(index).toString();
+    ui->priceLbl->setText(priceInfo());
+}
+
+QString CheckoutPage::priceInfo() {
     int vipLevel = mainWindow->currentUser.getVIPLevel();
     double discount = std::max(0.1, 1.0 - vipLevel * 0.05);
     double basePrice = mainWindow->selectedFlight.getTotalPrice() * discount;
+    double cabinPriceMultiplier = cabinPrice[mainWindow->selectedClass];
+    basePrice *= cabinPriceMultiplier;
 
-    if(mainWindow->selectedClass == "经济舱") {
-        basePrice *= 1.0;
-    } else if(mainWindow->selectedClass == "商务舱") {
-        basePrice *= 1.8;
-    } else {
-        basePrice *= 2.4;
-    }
+    double fuelCost = mainWindow->selectedFlight.getTotalPrice() * FUEL_RATIO;
+    double mealCost = mealPrice[meal];
+    double insuranceCost = insurancePrice[insurance];
 
-    info += "待支付￥" + QString::number(basePrice, 'f', 2);
+    double totalPrice = basePrice + fuelCost + mealCost + insuranceCost;
 
-    double mealPrice = 0;
-    if(meal == "无餐食") {
-        mealPrice = 0;
-    } else if(meal == "标准餐") {
-        mealPrice = NORMAL_MEAL_PRICE;
-    } else {
-        mealPrice = PLUS_MEAL_PRICE;
-    }
-
-    if(mealPrice > 0) {
-        double totalPrice = basePrice + mealPrice;
-        QString finalPrice = " + " + QString::number(mealPrice, 'f', 2) + " = " + QString::number(totalPrice, 'f', 2);
-        info += finalPrice;
-    }
+    QString info = QString(
+                       "<font size='5' color='#111'><b>订单总价：￥%1</b></font><br>"
+                       "<font color='#555'>票价：￥%2</font><br>"
+                       "<font color='#555'>基建燃油：￥%3</font><br>"
+                       "<font color='#555'>餐食：%4（+￥%5）</font><br>"
+                       "<font color='#555'>保险：%6（+￥%7）</font>"
+                       )
+                       .arg(QString::number(totalPrice, 'f', 2))
+                       .arg(QString::number(basePrice, 'f', 2))
+                       .arg(QString::number(fuelCost, 'f', 2))
+                       .arg(meal)
+                       .arg(QString::number(mealCost, 'f', 2))
+                       .arg(insurance)
+                       .arg(QString::number(insuranceCost, 'f', 2));
     return info;
 }
 
@@ -125,12 +153,30 @@ void CheckoutPage::fillPassengerInfo(const Passenger &passenger) {
     ui->passenger_phone->setText(passenger.getPhone());
 }
 
+void CheckoutPage::getSelectedPriceRatio() {
+    if (mainWindow->selectedFlight.getFlightCount() == 0 || mainWindow->searchedFlights.isEmpty()) {
+        qWarning() << "推荐航班无法计算得分";
+        return;
+    }
+
+    double totalPrice = 0.0;
+    for (const auto& route : mainWindow->searchedFlights) {
+        double price = route.getTotalPrice();
+        totalPrice += price;
+    }
+    double basePrice = totalPrice / mainWindow->searchedFlights.size();
+    double selectedPrice = mainWindow->selectedFlight.getTotalPrice();
+    double ratio = selectedPrice / basePrice;
+    mainWindow->currentUser.updatePriceRatio(ratio);
+}
+
 void CheckoutPage::addPassenger() {
     Passenger passenger = createPassenger();
     if (passenger.getFamilyName() == "") {
         return;
     }
     Order order = createOrder(passenger);
+    getSelectedPriceRatio();
     if (mainWindow->orderType == Flight_Ticket_Management_System::RESCHEDULE_ORDER) {
         handleRescheduleOrder();
     } else {
@@ -160,10 +206,12 @@ Order CheckoutPage::createOrder(const Passenger& passenger) {
     double basePrice = mainWindow->selectedFlight.getTotalPrice() * discount;
     double cabinPriceMultiplier = cabinPrice[mainWindow->selectedClass];
     double cabinPrice = basePrice * cabinPriceMultiplier;
+    double fuelCost = mainWindow->selectedFlight.getTotalPrice() * FUEL_RATIO;
     double mealExtraCost = mealPrice[meal];
+    double insuranceCost = insurancePrice[insurance];
 
-    double totalPrice = cabinPrice + mealExtraCost;
-    Order order(QUuid::createUuid().toString(), passenger, mainWindow->selectedFlight, meal, "已支付", totalPrice,
+    double totalPrice = cabinPrice + fuelCost + mealExtraCost + insuranceCost;
+    Order order(QUuid::createUuid().toString(), passenger, mainWindow->selectedFlight, meal, insurance, "已支付", totalPrice,
                 mainWindow->selectedClass);
     updateFlightSeats(order);
     saveOrderToFile(order);
@@ -252,21 +300,4 @@ void CheckoutPage::resetGenderRadioButtons() {
     ui->isFemale->setCheckable(true);
 }
 
-void CheckoutPage::changeNoFood() {
-    ui->foodLbl->setText("已选择：无餐食\n需额外支付 0 元");
-    meal = "无餐食";
-    ui->flightInfo->setText(detailInfo());
-}
-
-void CheckoutPage::changeNormalFood() {
-    ui->foodLbl->setText("已选择：标准餐\n需额外支付 " + QString::number(NORMAL_MEAL_PRICE) + "元");
-    meal = "标准餐";
-    ui->flightInfo->setText(detailInfo());
-}
-
-void CheckoutPage::changePlusFood() {
-    ui->foodLbl->setText("已选择：豪华餐\n需额外支付 " + QString::number(PLUS_MEAL_PRICE) + "元");
-    meal = "豪华餐";
-    ui->flightInfo->setText(detailInfo());
-}
 

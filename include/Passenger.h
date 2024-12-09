@@ -22,6 +22,7 @@ public:
     QString getSex() const;
     QString getId() const;
     QString getPhone() const;
+
     void setFamilyName(const QString &f) ;
     void setGivenName(const QString &g) ;
     void setSex(const QString &s) ;

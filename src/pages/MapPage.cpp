@@ -27,11 +27,9 @@ void MapPage::map2user() {
 
 void MapPage::initWebEngine() {
     if(mainWindow->map_type == Flight_Ticket_Management_System::DOMESTIC) {
-        ui->webEngineView->setUrl(QUrl::fromLocalFile(
-            "D:/CS/projects/Flight_Ticket_Management_System/web/html/domestic_routes.html"));
+        ui->webEngineView->setUrl(QUrl(DOMESTIC_MAP_URL));
     } else {
-        ui->webEngineView->setUrl(QUrl::fromLocalFile(
-            "D:/CS/projects/Flight_Ticket_Management_System/web/html/global_routes.html"));
+        ui->webEngineView->setUrl(QUrl(GLOBAL_MAP_URL));
     }
     configWebEngine(ui->webEngineView);
 }
@@ -68,7 +66,6 @@ void MapPage::displayMap(int index) {
 }
 
 void MapPage::drawFlightRoutesLeaflet(const FlightRoute& flightRoute) {
-
     for (const std::shared_ptr<Flight> &flight : flightRoute) {
         QString depCity = flight->getDepartureCity();
         QString arrCity = flight->getArrivalCity();
@@ -91,7 +88,6 @@ void MapPage::drawFlightRoutesLeaflet(const FlightRoute& flightRoute) {
 
         ui->webEngineView->page()->runJavaScript(jsCode);
     }
-
 }
 
 void MapPage::processLeafletMap(int index, QList<Order> orders) {

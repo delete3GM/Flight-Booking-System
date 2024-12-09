@@ -9,13 +9,11 @@ private:
 public:
     FlightRoute();
     FlightRoute(const FlightRoute& other);
-    //FlightRoute(const QVector<Flight>& flights);
     FlightRoute(const QVector<Flight>& initFlights) {
         for (const Flight& flight : initFlights) {
             flights.push_back(std::make_shared<Flight>(flight));
         }
     }
-
 
     const QVector<std::shared_ptr<Flight>>& getFlights() const;
     double getTotalPrice() const;
